@@ -1,6 +1,7 @@
 #ifndef SimpleSocket_hpp
 #define SimpleSocket_hpp
 
+#include <cstdlib>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

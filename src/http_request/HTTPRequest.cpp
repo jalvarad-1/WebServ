@@ -47,7 +47,7 @@ std::string HTTPRequest::getVersion() const {
 }
 
 std::string HTTPRequest::getHeader(const std::string& header_name) const {
-    auto it = headers.find(header_name);
+    std::map<std::string, std::string>::const_iterator it = headers.find(header_name);
     if (it != headers.end()) {
         return it->second;
     }

@@ -2,12 +2,13 @@
 #define HTTPServer_hpp
 #include <stdio.h>
 #include <unistd.h>
+#include <cstring>
 #include "SimpleServer.hpp"
 
 class HTTPServer: public SimpleServer
 {
     private:
-        char buffer[30000] = {0}; // TODO C++11
+        char buffer[30000]; // TODO C++11
         int new_socket;
 
     public:

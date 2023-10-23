@@ -10,3 +10,5 @@ ListeningSocket * SimpleServer::get_socket()
 {
     return socket;
 }
+
+SimpleServer::~SimpleServer() {}

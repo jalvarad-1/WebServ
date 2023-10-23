@@ -5,6 +5,9 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
             SimpleServer::SimpleServer(domain, service, protocol,
             port, interface, bklg)
 {
+    for (int i = 0; i < 30000; i++) {
+        buffer[i] = 0;
+    }
     _port = port;
 }
 void HTTPServer::accepter()

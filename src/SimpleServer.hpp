@@ -17,6 +17,7 @@ class SimpleServer
             int port, u_long interface, int bklg);
         virtual void launch() = 0;
         ListeningSocket * get_socket();
+        virtual ~SimpleServer();
 };
 
 #endif

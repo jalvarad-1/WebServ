@@ -5,6 +5,7 @@
 #include <vector>
 #include <poll.h>
 #include <cstring> // Para memset
+#include <cstdlib>
 
 class MultiServer
 {

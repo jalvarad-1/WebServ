@@ -4,10 +4,13 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <list>
 
 class LocationRules
 {
     private:
+        int maxBodySize;
+        std::list<std::string> allowedMethods;
     //Variables de info de la location
 
     public:
@@ -19,7 +22,8 @@ class ServerConfig
 {
     private:
         int port;
-        std::string serverName;
+        // int host ; ¿?
+        std::list<std::string> serverNames;
         std::string root;
         std::map<std::string, std::string> errorPages;
         int maxBodySize;

@@ -3,6 +3,7 @@
 
 #include "MockConfigFile.hpp"
 #include "HTTPRequest.hpp"
+#include <sstream>
 #include <string>
 #include <map>
 

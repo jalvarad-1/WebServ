@@ -1,10 +1,16 @@
 #include "HTTPResponse.hpp"
-#include "HTTPResponse.hpp"
-#include <sstream>
 
 HTTPResponse::HTTPResponse(const ServerConfig &server_config, const HTTPRequest &request) {
     constructResponse(server_config, request);
 }
+
+//Pasos viables:
+
+//Identificar que el host es válido: podemos recorrer el vector ServerConfig y revisar si existe ese serverName,
+//si no existe se maneja con el primero que escuche desde ese puerto
+
+//Una vez tenemos el server del que tirar cogemos la ruta a devolver, revisando que el método de la petición sea el permitid
+//y si no existe el recurso devolver 404
 
 void HTTPResponse::constructResponse(const ServerConfig &server_config, const HTTPRequest &request) {
     // Aquí validas la solicitud y construyes la respuesta

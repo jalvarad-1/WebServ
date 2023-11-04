@@ -20,6 +20,8 @@ private:
     std::map<std::string, LocationRules> locations; //Mapa donde almacenamos la info de las locations
 
 public:
+    int getPort();
+    std::vector<std::string> getServerName();
     ServerConfig(std::ifstream& myFile, int position);
     ~ServerConfig();
 };

@@ -39,10 +39,8 @@ void findPort(std::string line, int& port) {
     if (pos != std::string::npos) {
         std::vector<std::string> port_split = split(line);
         if (eliminarCaracter(port_split[1], ';')) {
-            if (isDigitString(port_split[1])) {
+            if (isDigitString(port_split[1]))
                 port = std::atoi(port_split[1].c_str());
-                std::cout << "Port: " << port << std::endl;
-            }
             else
                 throw std::runtime_error("Port must be a number");
         }
@@ -87,10 +85,15 @@ ServerConfig::ServerConfig(std::ifstream& myFile, int position) {
         findServerName(line, this->serverName);
         lineCounter++;
     }
+}
 
-    for (size_t i = 0; i < this->serverName.size(); i++) {
-        std::cout << "Server name: " << this->serverName[i] << std::endl;
-    }
+int ServerConfig::getPort() {
+    return this->port;
+}
+
+std::vector<std::string> ServerConfig::getServerName() {
+    return this->serverName;
 }
 
 ServerConfig::~ServerConfig() {}
+

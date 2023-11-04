@@ -4,15 +4,16 @@
 # include "ServerConfig.hpp"
 # include <iostream>
 # include <vector>
+# include <fstream>
+# include <string>
 
 class ConfigParser
 {
     private:
         std::vector<ServerConfig> confServers;
     public:
-        ConfigParser(std::string path);
+        ConfigParser(const char * path);
         ~ConfigParser();
 };
-
 
 #endif

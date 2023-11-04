@@ -4,4 +4,4 @@ LocationRules::LocationRules() {
     std::cout << "LocationRules constructor called" << std::endl;
 }
 
-LocationRules::~RoutesRules() {}
+LocationRules::~LocationRules() {}

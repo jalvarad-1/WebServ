@@ -6,6 +6,7 @@
 # include <vector>
 # include <fstream>
 # include <string>
+# include <stdexcept>
 
 class ConfigParser
 {

@@ -13,6 +13,7 @@ class ConfigParser
     private:
         std::vector<ServerConfig> confServers;
     public:
+        std::vector<ServerConfig> getConfigServers();
         ConfigParser(const char * path);
         ~ConfigParser();
 };

@@ -1,37 +1,5 @@
 #include "ConfigParser.hpp"
 
-// void serverDistributor(std::streampos& confInit, std::streampos& confActual,
-//     std::ifstream& myFile, int& position, int& open, std::string line,
-//     std::vector<ServerConfig>& confServers) {
-//     size_t pos;
-//     pos = line.find("server {");
-//     if (pos != std::string::npos) {
-//         confInit = myFile.tellg();
-//         position = 0;
-//         open++;
-//     }
-//     else {
-//         pos = line.find("{");
-//         if (pos != std::string::npos) {
-//             open++;
-//         }
-//         else
-//         {
-//             pos = line.find("}");
-//             if (pos != std::string::npos) {
-//                 if (open == 1) {
-//                     confActual = myFile.tellg();
-//                     myFile.seekg(confInit);
-//                     confServers.push_back(ServerConfig(myFile, position));
-//                     myFile.seekg(confActual);
-//                 }
-//                 open--;
-//             }
-//         }
-//     }
-// }
-
-
 ConfigParser::ConfigParser(const char * path) {
     std::ifstream myFile;
     std::streampos confInit, confActual;
@@ -43,33 +11,24 @@ ConfigParser::ConfigParser(const char * path) {
     else {
         int position;
         int open = 0;
-        size_t pos;
         std::string line;
         while (std::getline(myFile, line)) {
-            pos = line.find("server {");
-            if (pos != std::string::npos) {
+            if (line.find("server {") != std::string::npos) {
                 confInit = myFile.tellg();
                 position = 0;
                 open++;
             }
-            else {
-                pos = line.find("{");
-                if (pos != std::string::npos) {
-                    open++;
+            else if (line.find("{") != std::string::npos)
+                open++;
+            else if (line.find("}") != std::string::npos) {
+                if (open == 1) {
+                    confActual = myFile.tellg();
+                    myFile.seekg(confInit);
+                    this->confServers.push_back(ServerConfig(myFile, position));
+                    std::cout << "Server added" << std::endl;
+                    myFile.seekg(confActual);
                 }
-                else
-                {
-                    pos = line.find("}");
-                    if (pos != std::string::npos) {
-                        if (open == 1) {
-                            confActual = myFile.tellg();
-                            myFile.seekg(confInit);
-                            this->confServers.push_back(ServerConfig(myFile, position));
-                            myFile.seekg(confActual);
-                        }
-                        open--;
-                    }
-                }
+                open--;
             }
             position++;
         }

@@ -6,6 +6,7 @@
 #include <poll.h>
 #include <cstring> // Para memset
 #include <cstdlib>
+#include "ConfigParser/ConfigParser.hpp"
 
 class MultiServer
 {

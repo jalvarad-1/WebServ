@@ -8,6 +8,9 @@ SRCS =	src/main.cpp\
 		src/MultiServer.cpp\
 		src/SimpleServer.cpp\
 		src/SimpleSocket.cpp\
+		src/ConfigParser/ConfigParser.cpp\
+		src/ConfigParser/LocationRules.cpp\
+		src/ConfigParser/ServerConfig.cpp\
 		src/http_request/HTTPRequest.cpp\
 		# src/http_request/http_request_line/HTTPMethod.cpp\
 		# src/http_request/http_request_line/HTTPPath.cpp\

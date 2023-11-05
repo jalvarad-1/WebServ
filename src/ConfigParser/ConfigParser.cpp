@@ -43,4 +43,8 @@ ConfigParser::ConfigParser(const char * path) {
     }
 }
 
+std::vector<ServerConfig> ConfigParser::getConfigServers() {
+    return this->confServers;
+}
+
 ConfigParser::~ConfigParser() {}

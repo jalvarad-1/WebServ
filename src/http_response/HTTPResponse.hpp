@@ -14,14 +14,12 @@ private:
     std::string _status_message;
     std::map<std::string, std::string> _headers;
     std::string _body;
-    std::string _response_raw;
-
-    // Método para validar y construir la respuesta
-    void constructResponse(const ServerConfig &server_config, const HTTPRequest &request);
 
 public:
     // Constructor que toma la configuración del servidor y la solicitud HTTP
-    HTTPResponse(const ServerConfig &server_config, const HTTPRequest &request);
+    // La conf del server podría ser un elemento privado de HTTPServer
+    // de esa manera sabemos que llegará el adecuado
+    HTTPResponse(const ServerConfig &server_config, const HTTPRequest &request, int port);
 
     // Métodos para obtener partes de la respuesta HTTP
     std::string getVersion() const;

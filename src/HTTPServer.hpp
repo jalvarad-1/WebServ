@@ -11,6 +11,7 @@ class HTTPServer: public SimpleServer
     private:
         char buffer[30000]; // TODO C++11
         int new_socket;
+        int _port;
 
     public:
         HTTPServer(int domain, int service, int protocol,
@@ -20,6 +21,7 @@ class HTTPServer: public SimpleServer
         void accepter();
         void handler();
         void responder();
-        int _port; /// Solo para comprobar que funciona, debería eliminarse en algún momento
+
+        int getListeningPort();
 };
 #endif

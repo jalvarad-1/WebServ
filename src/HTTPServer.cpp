@@ -10,6 +10,12 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
     }
     _port = port;
 }
+
+int HTTPServer::getListeningPort()
+{
+    return _port;
+}
+
 void HTTPServer::accepter()
 {
     struct sockaddr_in address = get_socket()->get_address();

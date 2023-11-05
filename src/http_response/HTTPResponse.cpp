@@ -1,13 +1,32 @@
 #include "HTTPResponse.hpp"
 
-HTTPResponse::HTTPResponse(const ServerConfig &server_config, const HTTPRequest &request) {
-    constructResponse(server_config, request);
+HTTPResponse::HTTPResponse(const ServerConfig &server_config, const HTTPRequest &request, int port) {
+    ;
 }
+// /kapouet    /kapouet/pouic/toto/pouet
+LocationRules ServerConfig::findBestMatchingLocation(const std::string &uri) const
+{
+    //Revisar si es un directorio y en caso contrario devolver algo por defecto
+    size_t maxMatchLength = 0;
+    std::map<std::string, LocationRules>::const_iterator bestMatch = locations.end();
 
+    for (std::map<std::string, LocationRules>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+        const std::string &locationPrefix = it->first;
+
+        if (locationPrefix.size() > maxMatchLength && locationPrefix.size() <= uri.size() &&
+            std::equal(locationPrefix.begin(), locationPrefix.end(), uri.begin())) {
+            bestMatch = it;
+            maxMatchLength = locationPrefix.size();
+        }
+    }
+
+    if (bestMatch != locations.end()) {
+        return bestMatch->second;
+    }
+
+    //Manejar caso donde no hay ninguna coincidencia.
+}
 //Pasos viables:
-
-//Identificar que el host es válido: podemos recorrer el vector ServerConfig y revisar si existe ese serverName,
-//si no existe se maneja con el primero que escuche desde ese puerto
 
 //Una vez tenemos el server del que tirar cogemos la ruta a devolver, revisando que el método de la petición sea el permitid
 //y si no existe el recurso devolver 404

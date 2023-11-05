@@ -11,6 +11,9 @@ class LocationRules
     private:
         int maxBodySize;
         std::list<std::string> allowedMethods;
+        //redirect loquesea.com  -> debe enviar stauts 300 y además un header con Location y el redirect
+        //listing directory on or of
+        //Set a default file to answer if the request is a directory.
     //Variables de info de la location
 
     public:
@@ -32,6 +35,7 @@ class ServerConfig
     public:
         ServerConfig();
         ~ServerConfig();
+        LocationRules findBestMatchingLocation(const std::string &uri) const
 };
 
 class ConfigParser

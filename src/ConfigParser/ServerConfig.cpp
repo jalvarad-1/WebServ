@@ -87,7 +87,7 @@ ServerConfig::ServerConfig(std::ifstream& myFile, int position) {
     }
 }
 
-int ServerConfig::getPort() {
+int ServerConfig::getPort() const{
     return this->port;
 }
 

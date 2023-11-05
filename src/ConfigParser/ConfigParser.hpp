@@ -1,4 +1,4 @@
-#ifndef ConfitParser_hpp
+#ifndef ConfigParser_hpp
 # define ConfigParser_hpp
 
 # include "ServerConfig.hpp"

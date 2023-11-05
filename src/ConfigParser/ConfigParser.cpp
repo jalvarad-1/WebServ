@@ -25,6 +25,9 @@ int findBlock(std::ifstream& myFile, std::string blockStart, std::vector<ServerC
         }
         position++;
     }
+    std::cout << confServers[0].getPort() << std::endl;
+    std::cout << confServers[1].getPort() << std::endl;
+    std::cout << confServers[2].getPort() << std::endl;
     return open;
 }
 

@@ -1,38 +1,6 @@
 #include "ConfigParser.hpp"
 #include <sstream>
 
-bool isDigitString(const std::string& str) {
-    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) {
-        if (!std::isdigit(*it)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool deleteChar(std::string &texto, char caracterABuscar) {
-    size_t pos = texto.find(caracterABuscar);
-
-    if (pos != std::string::npos) {
-        texto.erase(pos, 1);
-        return true;
-    }
-
-    return false;
-}
-
-std::vector<std::string> split2(std::string input) {
-    std::vector<std::string> palabras;
-    std::istringstream iss(input);
-    std::string palabra;
-
-    while (iss >> palabra) {
-        palabras.push_back(palabra);
-    }
-
-    return palabras;
-}
-
 int goodServDeclaration(std::vector<std::string> splitLine) {
     if (splitLine.size() > 0 && splitLine[0] == "server") {
         if (splitLine[1] == "{") {
@@ -56,7 +24,7 @@ std::vector<std::streampos> findServers(std::ifstream& myFile) {
     std::string                 line;
 
     while (std::getline(myFile, line)) {
-        splitLine = split2(line);
+        splitLine = split(line);
         if (line != "") {
             isServer = goodServDeclaration(splitLine);
             if (isServer == 1)
@@ -94,11 +62,24 @@ void setServerName(std::vector<std::string> splitLine, ServerConfig& servidor) {
     }
 }
 
+void setRoot(std::vector<std::string> splitLine, ServerConfig& servidor) {
+    if (splitLine.size() == 1)
+        throw std::runtime_error("Empty root definition.");
+    else if (splitLine[1].find(";") == std::string::npos)
+        throw std::runtime_error("Root definition must finish with ';'.");
+    else {
+        deleteChar(splitLine[1], ';');
+        servidor.setRoot(splitLine[1]);
+    }
+}
+
 void    setValues(std::vector<std::string> splitLine, ServerConfig& servidor) {
     if (splitLine[0] == "listen")
         setServerPort(splitLine, servidor);
     else if (splitLine[0] == "server_name")
         setServerName(splitLine, servidor);
+    else if (splitLine[0] == "root")
+        setRoot(splitLine, servidor);
 }
 
 void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers) {
@@ -111,7 +92,7 @@ void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers
     myFile.clear();
     while (std::getline(myFile, line)) {
         if (line != "") {
-            splitLine = split2(line);
+            splitLine = split(line);
             isServer = goodServDeclaration(splitLine);
             if (isServer != 0)
                 throw std::runtime_error("Invalid server redefinition.");

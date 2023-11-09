@@ -8,6 +8,9 @@
 # include <string>
 # include <stdexcept>
 
+# include "../utils/utils.hpp"
+
+
 class ConfigParser
 {
     private:

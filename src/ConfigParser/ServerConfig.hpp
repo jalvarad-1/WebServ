@@ -22,10 +22,12 @@ private:
 public:
     ServerConfig();
     ~ServerConfig();
-    void setServerName(std::string serverName);
-    std::vector<std::string> getServerName();
     void setPort(unsigned int port);
+    void setServerName(std::string serverName);
+    void setRoot(std::string root);
     int getPort();
+    std::vector<std::string> getServerName();
+    std::string getRoot();
 };
 
 #endif

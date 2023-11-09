@@ -12,6 +12,7 @@ SRCS =	src/main.cpp\
 		src/ConfigParser/LocationRules.cpp\
 		src/ConfigParser/ServerConfig.cpp\
 		src/http_request/HTTPRequest.cpp\
+		src/utils/utils.cpp\
 		# src/http_request/http_request_line/HTTPMethod.cpp\
 		# src/http_request/http_request_line/HTTPPath.cpp\
 		# src/http_request/http_request_line/HTTPVersion.cpp\

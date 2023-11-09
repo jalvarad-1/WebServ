@@ -20,7 +20,30 @@ void HTTPServer::accepter()
 
 void HTTPServer::handler()
 {
+    std::cout << "----------------- Este es el buffer: -----------------" << std::endl;
     std::cout << buffer << std::endl;
+    std::cout << "----------------- Esta es la clase HTTPRequest ----------------" << std::endl;
+    std::string raw_request(buffer);
+    HTTPRequest request(raw_request);
+
+    if (request.getErrorMessage() != "") {
+        std::cout << "Error: " << request.getErrorMessage() << std::endl;
+        return ;
+    }
+
+    std::cout << "Method: " << request.getMethod() << std::endl;
+    std::cout << "URI: " << request.getURI() << std::endl;
+    std::cout << "HTTP Version: " << request.getVersion() << std::endl;
+
+    // Printing headers
+    std::map<std::string, std::string> headers = request.getHeaders();
+    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
+        std::cout << it->first << ": " << it->second << std::endl;
+
+    if (request.methodAcceptsBody(request.getMethod()))
+        std::cout << "Body: " << request.getBody() << std::endl;
+
+    return ;
 }
 
 void HTTPServer::responder()

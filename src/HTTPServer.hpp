@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <cstring>
 #include "SimpleServer.hpp"
+#include "./http_request/HTTPRequest.hpp"
 
 class HTTPServer: public SimpleServer
 {

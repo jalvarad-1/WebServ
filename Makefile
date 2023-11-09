@@ -1,6 +1,6 @@
 CXX := g++
 NAME := webserv
-CXXFLAGS := -Wall -Werror -Wextra -std=c++98
+CXXFLAGS := -g -Wall -Werror -Wextra -std=c++98
 SRCS =	src/main.cpp\
 		src/BindingSocket.cpp\
 		src/HTTPServer.cpp\
@@ -11,7 +11,7 @@ SRCS =	src/main.cpp\
 		src/ConfigParser/ConfigParser.cpp\
 		src/ConfigParser/LocationRules.cpp\
 		src/ConfigParser/ServerConfig.cpp\
-		# src/http_request/HTTPRequest.cpp\
+		src/http_request/HTTPRequest.cpp\
 		# src/http_request/http_request_line/HTTPMethod.cpp\
 		# src/http_request/http_request_line/HTTPPath.cpp\
 		# src/http_request/http_request_line/HTTPVersion.cpp\

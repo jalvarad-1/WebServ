@@ -10,6 +10,10 @@
 
 > Full details are included in the `WebServPDF.pdf` file.
 
+## Config file documentation
+
+There are quite a few things to keep in mind when making and parsing the config file. [Here](https://github.com/jalvarad-1/WebServ/blob/dpavon/documentation/configFile.md) you have the docu of how we propose it.
+
 ## HTTPRequest Class
 The HTTPRequest class is a representation of an [HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#http_requests), providing a structured way to access the different components of the request, such as the method, URI, HTTP version, headers and body. This class only checks basic formatting and does not check if there is a virtual server registered with that uri and that method is accepted.
 

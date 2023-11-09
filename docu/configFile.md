@@ -84,7 +84,7 @@ server {
 
 ## Parser logic
 
-All the ":sparkles: Magic :sparkles:" of reading and parsing the config file happens in the [ConfigParser folder]() inside src.
+All the ":sparkles: Magic :sparkles:" of reading and parsing the config file happens in the [ConfigParser folder](https://github.com/jalvarad-1/WebServ/tree/master/src/ConfigParser) inside src.
 
 Here you will see the class "ConfigParser". The first thing our server will do is create a class of this type. In its constructor it will carry out the necessary steps to check the integrity of the file, read it and store the relevant data for the execution of the server.
 

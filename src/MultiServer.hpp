@@ -16,7 +16,7 @@ class MultiServer
 
     public:
         /// TODO to decide type of variable to pass to Constructor
-        MultiServer(const std::vector<int>& ports);
+        MultiServer(const std::vector<ServerConfig>& serverConfigs);
         ~MultiServer();
         void run();
 };

@@ -7,6 +7,7 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     backlog = bklg;
     start_listening();
     test_connection(listening );
+    std::cout << "socket on port " << port << "ready" << std::endl;
 }
 
 void ListeningSocket::start_listening()

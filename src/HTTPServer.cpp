@@ -1,15 +1,20 @@
 #include "HTTPServer.hpp"
 
 HTTPServer::HTTPServer(int domain, int service, int protocol,
-            int port, u_long interface, int bklg):
+            int port, u_long interface, int bklg, const ServerConfig & serverConfig):
             SimpleServer::SimpleServer(domain, service, protocol,
-            port, interface, bklg)
+            port, interface, bklg), _serverConfig(serverConfig)
 {
     for (int i = 0; i < 30000; i++) {
         buffer[i] = 0;
     }
-    _port = port;
 }
+
+int HTTPServer::getListeningPort()
+{
+    return _serverConfig.getPort();
+}
+
 void HTTPServer::accepter()
 {
     struct sockaddr_in address = get_socket()->get_address();
@@ -49,7 +54,7 @@ void HTTPServer::handler()
 void HTTPServer::responder()
 {
     char body[512];
-    sprintf(body, "Hello from server on port %d", _port);
+    sprintf(body, "Hello from server on port %d", getListeningPort());
 
     char response[1024];
     sprintf(response,

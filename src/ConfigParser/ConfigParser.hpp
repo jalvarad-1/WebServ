@@ -1,4 +1,4 @@
-#ifndef ConfitParser_hpp
+#ifndef ConfigParser_hpp
 # define ConfigParser_hpp
 
 # include "ServerConfig.hpp"
@@ -7,6 +7,9 @@
 # include <fstream>
 # include <string>
 # include <stdexcept>
+
+# include "../utils/utils.hpp"
+
 
 class ConfigParser
 {

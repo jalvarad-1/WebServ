@@ -1,15 +1,16 @@
 #include "MultiServer.hpp"
 
-MultiServer::MultiServer(const std::vector<int>& ports) {
-    for (std::vector<int>::const_iterator it = ports.begin(); it != ports.end(); ++it)
+MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
+    for (std::vector<ServerConfig>:: const_iterator it = serverConfigs.begin(); it != serverConfigs.end(); ++it)
     {
-        int port = *it;
-        HTTPServer* server = new HTTPServer(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10);
+        int port = it->getPort();  // Asumiendo que ServerConfig tiene un método getPort()
+        std::cout << port << "before" << std::endl;
+        HTTPServer* server = new HTTPServer(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10, *it);
+        std::cout << (*it).getPort() << "class multiserver" << std::endl;
         servers.push_back(server);
-
         struct pollfd pfd;
         memset(&pfd, 0, sizeof(pfd));
-        pfd.fd = server->get_socket()->get_sock();
+        pfd.fd = server->get_socket()->get_sock();  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
         pfd.events = POLLIN;
         pfd.revents = 0;
         poll_fds.push_back(pfd);
@@ -36,6 +37,7 @@ void MultiServer::run() {
         for (size_t i = 0; i < poll_fds.size(); i++) {
             if (poll_fds[i].revents & POLLIN) {
                 // TODO keep-alive connections
+                std::cout << "run ()" << servers[i]->getListeningPort() << std::endl;
                 servers[i]->accepter();
                 servers[i]->handler();
                 servers[i]->responder();

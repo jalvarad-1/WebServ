@@ -12,22 +12,18 @@
 class ServerConfig
 {
 private:
-    int                                     _port;
-    std::vector<std::string>                _serverName;
-    std::string                             _root;
-    std::map<std::string, std::string>      _errorPages;
-    int                                     _maxBodySize;
-    std::map<std::string, LocationRules>    _locations; //Mapa donde almacenamos la info de las locations
+    int port;
+    std::vector<std::string> serverName;
+    std::string root;
+    std::map<std::string, std::string> errorPages;
+    int maxBodySize;
+    std::map<std::string, LocationRules> locations; //Mapa donde almacenamos la info de las locations
 
 public:
-    ServerConfig();
-    ~ServerConfig();
-    void setPort(unsigned int port);
-    void setServerName(std::string serverName);
-    void setRoot(std::string root);
     int getPort();
     std::vector<std::string> getServerName();
-    std::string getRoot();
+    ServerConfig(std::ifstream& myFile, int position);
+    ~ServerConfig();
 };
 
 #endif

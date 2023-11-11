@@ -1,7 +1,7 @@
 #include "MultiServer.hpp"
 
 MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
-    for (std::vector<ServerConfig>::const_iterator it = serverConfigs.begin(); it != serverConfigs.end(); ++it)
+    for (std::vector<ServerConfig>:: const_iterator it = serverConfigs.begin(); it != serverConfigs.end(); ++it)
     {
         int port = it->getPort();  // Asumiendo que ServerConfig tiene un método getPort()
         std::cout << port << "before" << std::endl;

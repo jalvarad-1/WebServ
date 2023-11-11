@@ -12,11 +12,7 @@ SRCS =	src/main.cpp\
 		src/ConfigParser/LocationRules.cpp\
 		src/ConfigParser/ServerConfig.cpp\
 		src/http_request/HTTPRequest.cpp\
-		# src/http_request/http_request_line/HTTPMethod.cpp\
-		# src/http_request/http_request_line/HTTPPath.cpp\
-		# src/http_request/http_request_line/HTTPVersion.cpp\
-		# src/http_request/http_request_line/RequestLineException.cpp\
-		# src/http_response/HTTPResponse.cpp\
+        src/utils/utils.cpp\
 
 OBJS = $(SRCS:.cpp=.o)
 

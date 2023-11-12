@@ -6,7 +6,7 @@ MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
         int port = it->getPort();  // Asumiendo que ServerConfig tiene un método getPort()
         std::cout << port << "before" << std::endl;
         HTTPServer* server = new HTTPServer(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10, *it);
-        std::cout << (*it).getPort() << "class multiserver" << std::endl;
+        // std::cout << (*it).getPort() << "class multiserver" << std::endl;
         servers.push_back(server);
         struct pollfd pfd;
         memset(&pfd, 0, sizeof(pfd));

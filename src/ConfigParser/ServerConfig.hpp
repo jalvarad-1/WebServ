@@ -4,7 +4,7 @@
 # include <iostream>
 # include <map>
 # include <vector>
-# include "LocationRules.hpp"
+// # include "LocationRules.hpp"
 # include <fstream>
 # include <string>
 # include <cstdlib>
@@ -17,7 +17,7 @@ private:
     std::string                             _root;
     std::map<std::string, std::string>      _errorPages;
     int                                     _maxBodySize;
-    std::map<std::string, LocationRules>    _locations; //Mapa donde almacenamos la info de las locations
+    // std::map<std::string, LocationRules>    _locations; //Mapa donde almacenamos la info de las locations
 
 public:
     ServerConfig();

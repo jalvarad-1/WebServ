@@ -6,6 +6,7 @@
 #include "../http_request/HTTPRequest.hpp"
 #include "../ConfigParser/ServerConfig.hpp"
 #include "ListeningSocket.hpp"
+#include <poll.h>
 
 class HTTPServer
 {
@@ -17,13 +18,13 @@ class HTTPServer
 
     public:
         HTTPServer(int domain, int service, int protocol,
-            int port, u_long interface, int bklg, const ServerConfig & serverConfig);
-        void launch(); // No se utilzará de forma directa, pero si se requiere para hacer pruebas del http server es posible utilizarla
+        int port, u_long interface, int bklg, const ServerConfig & serverConfig);
+        // void launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status); // No se utilzará de forma directa, pero si se requiere para hacer pruebas del http server es posible utilizarla
 
-        void accepter();
+        int accepter(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         void handler();
-        void responder();
-
+        void responder(struct pollfd &poll_fds, struct fd_status &status);
+        void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();
 };

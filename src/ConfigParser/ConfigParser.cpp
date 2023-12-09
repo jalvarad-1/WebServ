@@ -1,6 +1,27 @@
 #include "ConfigParser.hpp"
 #include <sstream>
 
+//std::string extractSection(const std::string& configContent, size_t& startPosition) {
+//    size_t openBraces = 0;
+//    std::string section;
+//
+//    for (size_t i = startPosition; i < configContent.length(); ++i) {
+//        if (configContent[i] == '{') {
+//            openBraces++;
+//        } else if (configContent[i] == '}') {
+//            openBraces--;
+//            if (openBraces == 0) {
+//                // Extract hasta el cierre de la sección
+//                section = configContent.substr(startPosition, i - startPosition + 1);
+//                startPosition = i + 1; // Actualizar la posición de inicio para la próxima búsqueda
+//                return section;
+//            }
+//        }
+//    }
+//
+//    throw std::runtime_error("No se encontró un cierre de sección válido.");
+//}
+
 int goodServDeclaration(std::vector<std::string> splitLine) {
     if (splitLine.size() > 0 && splitLine[0] == "server") {
         if (splitLine[1] == "{") {
@@ -36,19 +57,29 @@ std::vector<std::streampos> findServers(std::ifstream& myFile) {
     return serverInit;
 }
 
-void    setServerPort(std::vector<std::string> splitLine, ServerConfig& servidor) {
+void setAttributeByName(std::string attributeName, std::vector<std::string> splitLine,
+        ServerConfig& servidor){
     if (splitLine.size() == 1)
-        throw std::runtime_error("Port definition must have a port.");
+        throw std::runtime_error("Empty server_name definition.");
     else if (splitLine[1].find(";") == std::string::npos)
-        throw std::runtime_error("Port definition must finish with ';'.");
+        throw std::runtime_error("Server_name definition must finish with ';'.");
     else {
         deleteChar(splitLine[1], ';');
-        if (isDigitString(splitLine[1]) == false) {
+        if (attributeName == "port"  && isDigitString(splitLine[1]) == false) {
             throw std::runtime_error("Port definition must be a valid number.");
         }
-        else
-            servidor.setPort(std::atoi(splitLine[1].c_str()));
+        servidor.setServerName(splitLine[1]);
     }
+}
+
+void    setServerPort(std::vector<std::string> splitLine, ServerConfig& servidor) {
+
+    deleteChar(splitLine[1], ';');
+    if (isDigitString(splitLine[1]) == false) {
+        throw std::runtime_error("Port definition must be a valid number.");
+    }
+    else
+        servidor.setPort(std::atoi(splitLine[1].c_str()));
 }
 
 void setServerName(std::vector<std::string> splitLine, ServerConfig& servidor) {

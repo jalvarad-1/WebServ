@@ -20,6 +20,7 @@ void HTTPServer::accepter()
     struct sockaddr_in address = get_socket()->get_address();
     int addrlen = sizeof(address);
     new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    
     read(new_socket, buffer, 30000);
 }
 
@@ -61,7 +62,7 @@ void HTTPServer::responder()
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/plain\r\n"
         "Content-Length: %zu\r\n"
-        "Connection: close\r\n"
+        "Connection: keep-alive\r\n"
         "\r\n"
         "%s",
         strlen(body),

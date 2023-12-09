@@ -2,12 +2,9 @@ CXX := g++
 NAME := webserv
 CXXFLAGS := -Wall -Wextra -std=c++98
 SRCS =	src/main.cpp\
-		src/BindingSocket.cpp\
-		src/HTTPServer.cpp\
-		src/ListeningSocket.cpp\
-		src/MultiServer.cpp\
-		src/SimpleServer.cpp\
-		src/SimpleSocket.cpp\
+		src/server/HTTPServer.cpp\
+		src/server/ListeningSocket.cpp\
+		src/server/MultiServer.cpp\
 		src/ConfigParser/ConfigParser.cpp\
 		src/ConfigParser/LocationRules.cpp\
 		src/ConfigParser/ServerConfig.cpp\

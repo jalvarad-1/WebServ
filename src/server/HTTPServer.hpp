@@ -3,15 +3,16 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <cstring>
-#include "SimpleServer.hpp"
-#include "./http_request/HTTPRequest.hpp"
-#include "./ConfigParser/ServerConfig.hpp"
+#include "../http_request/HTTPRequest.hpp"
+#include "../ConfigParser/ServerConfig.hpp"
+#include "ListeningSocket.hpp"
 
-class HTTPServer: public SimpleServer
+class HTTPServer
 {
     private:
-        char buffer[30000]; // TODO C++11
-        int new_socket;
+        char _buffer[30000]; // TODO C++11
+        int _new_socket;
+        ListeningSocket * _socket;
         ServerConfig _serverConfig;
 
     public:
@@ -23,6 +24,7 @@ class HTTPServer: public SimpleServer
         void handler();
         void responder();
 
+        ListeningSocket * get_socket();
         int getListeningPort();
 };
 #endif

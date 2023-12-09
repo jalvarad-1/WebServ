@@ -2,12 +2,18 @@
 
 HTTPServer::HTTPServer(int domain, int service, int protocol,
             int port, u_long interface, int bklg, const ServerConfig & serverConfig):
-            SimpleServer::SimpleServer(domain, service, protocol,
-            port, interface, bklg), _serverConfig(serverConfig)
+            _serverConfig(serverConfig)
 {
+    _socket = new ListeningSocket(domain, service, protocol, port, interface, bklg);
+
     for (int i = 0; i < 30000; i++) {
-        buffer[i] = 0;
+        _buffer[i] = 0;
     }
+}
+
+ListeningSocket * HTTPServer::get_socket()
+{
+    return _socket;
 }
 
 int HTTPServer::getListeningPort()
@@ -19,17 +25,16 @@ void HTTPServer::accepter()
 {
     struct sockaddr_in address = get_socket()->get_address();
     int addrlen = sizeof(address);
-    new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
-    
-    read(new_socket, buffer, 30000);
+    _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    read(_new_socket, _buffer, 30000); // modificar función de lectura por la de leer sockets
 }
 
 void HTTPServer::handler()
 {
     std::cout << "----------------- Este es el buffer: -----------------" << std::endl;
-    std::cout << buffer << std::endl;
+    std::cout << _buffer << std::endl;
     std::cout << "----------------- Esta es la clase HTTPRequest ----------------" << std::endl;
-    std::string raw_request(buffer);
+    std::string raw_request(_buffer);
     HTTPRequest request(raw_request);
 
     if (request.getErrorMessage() != "") {
@@ -69,8 +74,8 @@ void HTTPServer::responder()
         body
     );
 
-    write(new_socket, response, strlen(response));
-    close(new_socket);
+    write(_new_socket, response, strlen(response));
+    close(_new_socket);
 }
 
 

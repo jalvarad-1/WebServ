@@ -1,4 +1,4 @@
-#include "MultiServer.hpp"
+#include "server/MultiServer.hpp"
 
 int main(int argc, char **argv)
 {

@@ -22,7 +22,7 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     _backlog = bklg;
     _listening = listen(_sock, _backlog);
     test_connection(_listening);
-    std::cout << "socket on port " << port << "ready" << std::endl;
+    std::cout << "socket on port " << port << " ready" << std::endl;
 }
 
 void ListeningSocket::test_connection(int item_to_test)

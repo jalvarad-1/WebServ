@@ -132,9 +132,6 @@ ConfigParser::ConfigParser(const char * path) {
             saveServer(myFile, this->confServers);
         }
         myFile.close();
-        for (size_t i = 0; i < confServers.size(); i++) {
-            std::cout << "Port: " << confServers[i].getPort() << std::endl;
-        }
     }
 }
 

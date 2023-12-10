@@ -29,8 +29,8 @@ void HTTPServer::acceptConnection(std::vector<struct pollfd> &poll_fds, std::vec
     memset(&pfd, 0, sizeof(pfd));
     struct sockaddr_in address = get_socket()->get_address();
     int addrlen = sizeof(address);
-    _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
-    pfd.fd = _new_socket;
+    // _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    pfd.fd = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
     pfd.events = POLLIN;
     pfd.revents = 0;
     port_status.port = false;
@@ -76,15 +76,11 @@ void HTTPServer::handler()
 void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
 {
     char body[512];
-    if (status.status == 1) {
-        std::cout << "Primera entrada" << std::endl;
+    if (status.status == 1)
         sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), poll_fds.fd);
-    }
-    else {
-        std::cout << "Entro por aquí" << std::endl;
+    else
         sprintf(body, "Hello from server on port %d not closed", getListeningPort());
-    }
-    std::cout << status.status << std::endl;
+    // std::cout << status.status << std::endl;
     char response[1024];
     sprintf(response,
         "HTTP/1.1 200 OK\r\n"

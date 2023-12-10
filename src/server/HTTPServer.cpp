@@ -102,8 +102,11 @@ void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
 }
 
 void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &status) {
-    if (status.status > 4)
+    if (status.status > 4 && status.port == false) {
         close(poll_fds.fd);
+        status.status = -1;
+        std::cout << "Cierro!!" << std::endl;
+    }
 }
 
 // void HTTPServer::launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)

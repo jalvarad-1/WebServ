@@ -5,12 +5,12 @@
 #include <vector>
 #include <poll.h>
 #include <cstring> // Para memset
-#include <chrono>  // Para la hora
+// #include <chrono>  // Para la hora
 #include <cstdlib>
 #include "../ConfigParser/ConfigParser.hpp"
 
 struct fd_status{
-    std::chrono::system_clock::time_point fecha;
+    // std::chrono::system_clock::time_point fecha;
     int status;
     bool port;
     HTTPServer* server;

@@ -22,44 +22,27 @@ int HTTPServer::getListeningPort()
     return _serverConfig.getPort();
 }
 
-int HTTPServer::accepter(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i)
+void HTTPServer::acceptConnection(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)
 {
-    if (status[i].port == true) {
-        struct fd_status port_status;
-        struct pollfd pfd;
+    struct fd_status port_status;
+    struct pollfd pfd;
+    memset(&pfd, 0, sizeof(pfd));
+    struct sockaddr_in address = get_socket()->get_address();
+    int addrlen = sizeof(address);
+    _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    pfd.fd = _new_socket;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+    port_status.port = false;
+    port_status.status = 1;
+    port_status.server = this;
+    poll_fds.push_back(pfd);
+    status.push_back(port_status);
+}
 
-        memset(&pfd, 0, sizeof(pfd));
-
-        // struct sockaddr_in address = get_socket()->get_address();
-        // int addrlen = sizeof(address);
-        // pfd.fd = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
-        // pfd.events = POLLIN;
-        // pfd.revents = 0;
-        // port_status.port = true;
-        // port_status.status = 1;
-        // poll_fds.push_back(pfd);
-        // status.push_back(port_status);
-        // read(pfd.fd, _buffer, 30000); // modificar función de lectura por la de leer sockets
-
-        struct sockaddr_in address = get_socket()->get_address();
-        int addrlen = sizeof(address);
-        _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
-        std::cout << "Hello" << std::endl;
-        pfd.fd = _new_socket;
-        pfd.events = POLLIN;
-        pfd.revents = 0;
-        port_status.port = false;
-        port_status.status = 1;
-        port_status.server = this;
-        poll_fds.push_back(pfd);
-        status.push_back(port_status);
-        read(pfd.fd, _buffer, 30000); // modificar función de lectura por la de leer sockets
-        return (pfd.fd);
-    } else {
-
-        read(poll_fds[i].fd, _buffer, 30000); // modificar función de lectura por la de leer sockets
-        return (poll_fds[i].fd);
-    }
+void HTTPServer::readPetition(struct pollfd &poll_fds) {
+    std::cout << "Leemos peticion" << std::endl;
+    read(poll_fds.fd, _buffer, 30000);
 }
 
 void HTTPServer::handler()
@@ -90,7 +73,7 @@ void HTTPServer::handler()
     return ;
 }
 
-void HTTPServer::responder(struct pollfd &poll_fds, struct fd_status &status)
+void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
 {
     char body[512];
     if (status.status == 1) {
@@ -118,9 +101,10 @@ void HTTPServer::responder(struct pollfd &poll_fds, struct fd_status &status)
     // close(_new_socket);
 }
 
-// void HTTPServer::checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i) {
-//     if 
-// }
+void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &status) {
+    if (status.status > 4)
+        close(poll_fds.fd);
+}
 
 // void HTTPServer::launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)
 // {

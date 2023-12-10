@@ -29,31 +29,24 @@ MultiServer::~MultiServer() {
 }
 
 void MultiServer::run() {
-    int sock;
-    size_t sock_pos;
     while (true) {
         int ret = poll(poll_fds.data(), poll_fds.size(), -1);
         if (ret < 0) {
             perror("poll failed");
             exit(EXIT_FAILURE);
         }
-
         for (size_t i = 0; i < poll_fds.size(); i++) {
             if (poll_fds[i].revents & POLLIN) {
-                sock_pos = 0;
-                // TODO keep-alive connections
-                std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
-                sock = status[i].server->accepter(poll_fds, status, i);
-                while (sock_pos < poll_fds.size()) {
-                    if (poll_fds[sock_pos].fd == sock)
-                        break;
-                    sock_pos++;
+                // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
+                if (status[i].port == true)
+                    status[i].server->acceptConnection(poll_fds, status);
+                else {
+                    status[i].server->readPetition(poll_fds[i]);
+                    status[i].server->sendResponse(poll_fds[i], status[i]);
+                    status[i].status += 1;
                 }
-                // status[i].server->handler();
-                status[i].server->responder(poll_fds[sock_pos], status[sock_pos]);
-                status[sock_pos].status += 1;
-                // status[i].server->checkSock(poll_fds, status, i);
             }
+            status[i].server->checkConnection(poll_fds[i], status[i]);
         }
     }
 }

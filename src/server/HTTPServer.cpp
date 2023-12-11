@@ -41,8 +41,8 @@ void HTTPServer::acceptConnection(std::vector<struct pollfd> &poll_fds, std::vec
 }
 
 void HTTPServer::readPetition(struct pollfd &poll_fds) {
-    std::cout << "Leemos peticion" << std::endl;
-    read(poll_fds.fd, _buffer, 30000);
+    recv(poll_fds.fd, _buffer, 30000, 0);
+    // read(poll_fds.fd, _buffer, 30000);
 }
 
 void HTTPServer::handler()
@@ -93,7 +93,8 @@ void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
         body
     );
 
-    write(poll_fds.fd, response, strlen(response));
+    send(poll_fds.fd, response, strlen(response), 0);
+    // write(poll_fds.fd, response, strlen(response));
     // close(_new_socket);
 }
 
@@ -101,7 +102,7 @@ void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &stat
     if (status.status > 4 && status.port == false) {
         close(poll_fds.fd);
         status.status = -1;
-        std::cout << "Cierro!!" << std::endl;
+        // std::cout << "Cierro!!" << std::endl;
     }
 }
 

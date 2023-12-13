@@ -73,36 +73,54 @@ void HTTPServer::handler()
     return ;
 }
 
+std::string readFromFile(std::string filename) {
+    std::ifstream file(filename);
+    std::stringstream buffer;
+
+    if (file.is_open()) {
+        buffer << file.rdbuf();
+        file.close();
+        return buffer.str();
+    } else {
+        return "No se pudo abrir el archivo.";
+    }
+}
+
 void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
-{
-    char body[512];
-    if (status.status == 1)
-        sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), poll_fds.fd);
-    else
-        sprintf(body, "Hello from server on port %d not closed", getListeningPort());
+{   
+    HTTPRequest request(_buffer);
+    std::string range = request.getHeader("Range");
+    std::string root = status.server->_serverConfig.getRoot();
+    std::string file = readFromFile(root + "/index.html");
+    
+    std::string body = file;
+
+    // char body[512];
+    // if (status.status == 1)
+    //     sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), poll_fds.fd);
+    // else
+    //     sprintf(body, "Hello from server on port %d not closed", getListeningPort());
     // std::cout << status.status << std::endl;
-    char response[1024];
+
+    char response[100+strlen(body.c_str())];
     sprintf(response,
         "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/plain\r\n"
+        "Content-Type: text/html\r\n"
         "Content-Length: %zu\r\n"
         "Connection: keep-alive\r\n"
+        "Accept-Ranges: bytes\r\n"
         "\r\n"
         "%s",
-        strlen(body),
-        body
+        strlen(body.c_str()),
+        body.c_str()
     );
-
     send(poll_fds.fd, response, strlen(response), 0);
-    // write(poll_fds.fd, response, strlen(response));
-    // close(_new_socket);
 }
 
 void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &status) {
     if (status.status > 4 && status.port == false) {
         close(poll_fds.fd);
         status.status = -1;
-        // std::cout << "Cierro!!" << std::endl;
     }
 }
 

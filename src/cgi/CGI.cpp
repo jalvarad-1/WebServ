@@ -6,7 +6,7 @@
 /*   By: cmarcu <cmarcu@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/12/09 17:42:44 by cmarcu            #+#    #+#             */
-/*   Updated: 2023/12/09 21:31:24 by cmarcu           ###   ########.fr       */
+/*   Updated: 2023/12/13 14:58:27 by cmarcu           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 CGI::CGI(const std::string& script_path, const std::map<std::string, std::string>& request_headers) : _script_path(script_path), _req_headers(request_headers)
 {
-	//TODO decidir qué parámetros construyen CGI :(
+	//TODO decidir qué atributos tiene CGI
 }
 
 CGI::~CGI()
@@ -49,7 +49,7 @@ std::string CGI::execute(HTTPRequest& request) {
 	{
 		close(pipefd[0]); // Close unused read end
 		dup2(pipefd[1], STDOUT_FILENO); // Redirect stdout to pipe
-		this->_env = build_env(request);
+		build_env(request);
 		char **envp = convert_env();
 		execve(this->_script_path.c_str(), NULL, envp);
 		//TODO lanzar error: recordar que si pasa de execve es que la ejecución ha fallado. Si todo va bien, execve no retorna

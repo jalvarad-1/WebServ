@@ -118,7 +118,7 @@ void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
 }
 
 void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &status) {
-    if (status.status > 4 && status.port == false) {
+    if (status.status > 1) {
         close(poll_fds.fd);
         status.status = -1;
     }

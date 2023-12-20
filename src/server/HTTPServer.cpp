@@ -74,7 +74,7 @@ void HTTPServer::handler()
 }
 
 std::string readFromFile(std::string filename) {
-    std::ifstream file(filename);
+    std::ifstream file(filename.c_str());
     std::stringstream buffer;
 
     if (file.is_open()) {

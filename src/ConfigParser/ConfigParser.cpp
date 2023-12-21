@@ -61,36 +61,20 @@ void setAttributeByName(std::string attributeName, std::vector<std::string> spli
         ServerConfig& servidor){
     if (splitLine.size() == 1)
         throw std::runtime_error("Empty server_name definition.");
-    else if (splitLine[1].find(";") == std::string::npos)
+    if (!deleteChar(splitLine[1], ';'))
         throw std::runtime_error("Server_name definition must finish with ';'.");
-    else {
-        deleteChar(splitLine[1], ';');
-        if (attributeName == "port"  && isDigitString(splitLine[1]) == false) {
-            throw std::runtime_error("Port definition must be a valid number.");
-        }
-        servidor.setServerName(splitLine[1]);
-    }
 }
 
 void    setServerPort(std::vector<std::string> splitLine, ServerConfig& servidor) {
 
-    deleteChar(splitLine[1], ';');
-    if (isDigitString(splitLine[1]) == false) {
+    if (isDigitString(splitLine[1]) == false)
         throw std::runtime_error("Port definition must be a valid number.");
-    }
     else
         servidor.setPort(std::atoi(splitLine[1].c_str()));
 }
 
 void setServerName(std::vector<std::string> splitLine, ServerConfig& servidor) {
-    if (splitLine.size() == 1)
-        throw std::runtime_error("Empty server_name definition.");
-    else if (splitLine[1].find(";") == std::string::npos)
-        throw std::runtime_error("Server_name definition must finish with ';'.");
-    else {
-        deleteChar(splitLine[1], ';');
-        servidor.setServerName(splitLine[1]);
-    }
+    servidor.setServerName(splitLine[1]);
 }
 
 void setRoot(std::vector<std::string> splitLine, ServerConfig& servidor) {

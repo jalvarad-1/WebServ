@@ -12,11 +12,9 @@
 class ServerConfig
 {
 private:
+    int                                     _host;
     int                                     _port;
-    std::vector<std::string>                _serverName;
-    std::string                             _root;
-    std::map<std::string, std::string>      _errorPages;
-    int                                     _maxBodySize;
+    std::list<std::string>                  _serverName;
     std::map<std::string, LocationRules>    _locations; //Mapa donde almacenamos la info de las locations
 
 public:

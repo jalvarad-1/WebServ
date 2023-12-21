@@ -31,6 +31,9 @@ void HTTPServer::acceptConnection(std::vector<struct pollfd> &poll_fds, std::vec
     int addrlen = sizeof(address);
     // _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
     pfd.fd = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    if (pfd.fd == -1)
+        std::cout << "Error" << std::endl;
+    std::cout << "Socket: " << pfd.fd << std::endl;
     pfd.events = POLLIN;
     pfd.revents = 0;
     port_status.port = false;
@@ -115,6 +118,8 @@ void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
         body.c_str()
     );
     send(poll_fds.fd, response, strlen(response), 0);
+    close(poll_fds.fd);
+    status.status = -1;
 }
 
 void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &status) {

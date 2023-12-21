@@ -5,7 +5,7 @@ MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
     {
         int port = it->getPort();  // Asumiendo que ServerConfig tiene un método getPort()
         struct fd_status port_status;
-        port_status.server = new HTTPServer(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 10, *it);
+        port_status.server = new HTTPServer(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 0, *it);
         struct pollfd pfd;
         memset(&pfd, 0, sizeof(pfd));
         pfd.fd = port_status.server->get_socket()->get_sock();  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
@@ -44,7 +44,7 @@ void MultiServer::run() {
                     status[i].status += 1;
                 }
             }
-            status[i].server->checkConnection(poll_fds[i], status[i]);
+            // status[i].server->checkConnection(poll_fds[i], status[i]);
         }
         for (int i = poll_fds.size() - 1; i >= 0; i--) {
             if (status[i].status == -1) {

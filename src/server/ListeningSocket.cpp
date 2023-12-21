@@ -1,4 +1,5 @@
 #include "ListeningSocket.hpp"
+#include <fcntl.h>
 
 ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port,
             u_long interface, int bklg)
@@ -11,7 +12,7 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     _sock = socket(domain, service, protocol);
     test_connection(_sock);
     /// TODO Review this variable in future
-    int reuse =1;
+    int reuse = 1;
     test_connection(setsockopt(_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)));
 
     // Bind (connect to network)
@@ -19,6 +20,10 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     test_connection(_binding);
 
     // start listening
+
+    // Funcion para gestionar sockets no bloqueantes
+    // fcntl(_sock, F_SETFL, O_NONBLOCK);
+    
     _backlog = bklg;
     _listening = listen(_sock, _backlog);
     test_connection(_listening);

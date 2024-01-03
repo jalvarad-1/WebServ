@@ -27,6 +27,7 @@ MultiServer::~MultiServer() {
 }
 
 void MultiServer::run() {
+    int socket;
     while (true) {
         int ret = poll(poll_fds.data(), poll_fds.size(), -1);
         if (ret < 0) {
@@ -36,15 +37,12 @@ void MultiServer::run() {
         for (size_t i = 0; i < poll_fds.size(); i++) {
             if (poll_fds[i].revents & POLLIN) {
                 // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
-                if (status[i].port == true)
-                    status[i].server->acceptConnection(poll_fds, status);
-                else {
-                    status[i].server->readPetition(poll_fds[i]);
-                    status[i].server->sendResponse(poll_fds[i], status[i]);
-                    status[i].status += 1;
-                }
+                // if (status[i].port == true) {
+                socket = status[i].server->acceptConnection();
+                status[i].server->readPetition(socket);
+                status[i].server->sendResponse(status[i], socket);
+                // }
             }
-            // status[i].server->checkConnection(poll_fds[i], status[i]);
         }
         for (int i = poll_fds.size() - 1; i >= 0; i--) {
             if (status[i].status == -1) {

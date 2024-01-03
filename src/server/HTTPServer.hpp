@@ -21,11 +21,10 @@ class HTTPServer
         int port, u_long interface, int bklg, const ServerConfig & serverConfig);
         // void launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status); // No se utilzará de forma directa, pero si se requiere para hacer pruebas del http server es posible utilizarla
 
-        void acceptConnection(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status);
+        int acceptConnection();
         void handler();
-        void checkConnection(struct pollfd &poll_fds, struct fd_status &status);
-        void readPetition(struct pollfd &poll_fds);
-        void sendResponse(struct pollfd &poll_fds, struct fd_status &status);
+        void readPetition(int socket);
+        void sendResponse(struct fd_status &status, int socket);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();

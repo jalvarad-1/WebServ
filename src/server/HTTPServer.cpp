@@ -22,29 +22,21 @@ int HTTPServer::getListeningPort()
     return _serverConfig.getPort();
 }
 
-void HTTPServer::acceptConnection(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)
+int HTTPServer::acceptConnection()
 {
-    struct fd_status port_status;
-    struct pollfd pfd;
-    memset(&pfd, 0, sizeof(pfd));
     struct sockaddr_in address = get_socket()->get_address();
     int addrlen = sizeof(address);
-    // _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
-    pfd.fd = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
-    if (pfd.fd == -1)
+    _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    if (_new_socket == -1)
         std::cout << "Error" << std::endl;
-    std::cout << "Socket: " << pfd.fd << std::endl;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-    port_status.port = false;
-    port_status.status = 1;
-    port_status.server = this;
-    poll_fds.push_back(pfd);
-    status.push_back(port_status);
+    // std::cout << "Socket: " << _new_socket << std::endl;
+    return (_new_socket);
 }
 
-void HTTPServer::readPetition(struct pollfd &poll_fds) {
-    recv(poll_fds.fd, _buffer, 30000, 0);
+void HTTPServer::readPetition(int socket) {
+
+    recv(socket, _buffer, 30000, 0);
+    std::cout << "Leemos peticion" << std::endl;
     // read(poll_fds.fd, _buffer, 30000);
 }
 
@@ -89,23 +81,18 @@ std::string readFromFile(std::string filename) {
     }
 }
 
-void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
+void HTTPServer::sendResponse(struct fd_status &status, int socket)
 {   
     HTTPRequest request(_buffer);
-    std::string range = request.getHeader("Range");
+    // std::string range = request.getHeader("Range");
     std::string root = status.server->_serverConfig.getRoot();
-    std::string file = readFromFile(root + "/index.html");
+    // std::string file = readFromFile(root + "/index.html");
     
-    std::string body = file;
+    // std::string body = file;
+    char body[512];
+    sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), socket);
 
-    // char body[512];
-    // if (status.status == 1)
-    //     sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), poll_fds.fd);
-    // else
-    //     sprintf(body, "Hello from server on port %d not closed", getListeningPort());
-    // std::cout << status.status << std::endl;
-
-    char response[100+strlen(body.c_str())];
+    char response[100+strlen(body)];
     sprintf(response,
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/html\r\n"
@@ -114,19 +101,12 @@ void HTTPServer::sendResponse(struct pollfd &poll_fds, struct fd_status &status)
         "Accept-Ranges: bytes\r\n"
         "\r\n"
         "%s",
-        strlen(body.c_str()),
-        body.c_str()
+        strlen(body),
+        body
     );
-    send(poll_fds.fd, response, strlen(response), 0);
-    close(poll_fds.fd);
-    status.status = -1;
-}
-
-void HTTPServer::checkConnection(struct pollfd &poll_fds, struct fd_status &status) {
-    if (status.status > 1) {
-        close(poll_fds.fd);
-        status.status = -1;
-    }
+    send(socket, response, strlen(response), 0);
+    std::cout << "Mandamos respuesta" << std::endl;
+    close(socket);
 }
 
 // void HTTPServer::launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)

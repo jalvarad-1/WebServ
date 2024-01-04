@@ -44,12 +44,6 @@ void MultiServer::run() {
                 // }
             }
         }
-        for (int i = poll_fds.size() - 1; i >= 0; i--) {
-            if (status[i].status == -1) {
-                status.erase(status.begin() + i);
-                poll_fds.erase(poll_fds.begin() + i);
-            }
-        }
     }
 }
 

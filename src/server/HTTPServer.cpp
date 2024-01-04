@@ -26,15 +26,15 @@ int HTTPServer::acceptConnection()
 {
     struct sockaddr_in address = get_socket()->get_address();
     int addrlen = sizeof(address);
+    // std::cout << "Puerto usado: " << get_socket()->get_sock() << std::endl;
     _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (_new_socket == -1)
         std::cout << "Error" << std::endl;
-    // std::cout << "Socket: " << _new_socket << std::endl;
+    std::cout << "\nRecibimos conexion socket: " << _new_socket << std::endl;
     return (_new_socket);
 }
 
 void HTTPServer::readPetition(int socket) {
-
     recv(socket, _buffer, 30000, 0);
     std::cout << "Leemos peticion" << std::endl;
     // read(poll_fds.fd, _buffer, 30000);
@@ -97,7 +97,7 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/html\r\n"
         "Content-Length: %zu\r\n"
-        "Connection: keep-alive\r\n"
+        "Connection: close\r\n"
         "Accept-Ranges: bytes\r\n"
         "\r\n"
         "%s",
@@ -107,6 +107,7 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
     send(socket, response, strlen(response), 0);
     std::cout << "Mandamos respuesta" << std::endl;
     close(socket);
+    std::cout << "Cerramos socket: " << socket << std::endl;
 }
 
 // void HTTPServer::launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)

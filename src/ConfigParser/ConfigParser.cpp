@@ -22,39 +22,36 @@
 //    throw std::runtime_error("No se encontró un cierre de sección válido.");
 //}
 
-int goodServDeclaration(std::vector<std::string> splitLine) {
-    if (splitLine.size() > 0 && splitLine[0] == "server") {
-        if (splitLine[1] == "{") {
-            return (1);
-        }
+bool goodInitModuleDeclaration(std::vector<std::string> splitLine, std::string moduleToFind) {
+    if (splitLine.size() > 0 && splitLine[0] == moduleToFind) {
+        if (splitLine[1] == "{")
+            return (true);
         else
-            return (-1);
+            return (false);
     }
-    else if (splitLine.size() > 0 && splitLine[0] == "server{") {
-        return(1);
-    }
-    else {
-        return (0);
-    }
+    else if (splitLine.size() > 0 && splitLine[0] == moduleToFind + "{")
+        return(true);
+    else
+        return (false);
 }
 
-std::vector<std::streampos> findServers(std::ifstream& myFile) {
-    std::vector<std::streampos> serverInit;
+std::vector<std::streampos> findModule(std::ifstream& myFile, std::string moduleName) {
+    std::vector<std::streampos> moduleInit;
     std::vector<std::string>    splitLine;
-    int                         isServer;
+    int                         isModule;
     std::string                 line;
 
     while (std::getline(myFile, line)) {
         splitLine = split(line);
         if (line != "") {
-            isServer = goodServDeclaration(splitLine);
-            if (isServer == 1)
-                serverInit.push_back(myFile.tellg());
-            else if (isServer == -1)
+            isModule = goodInitModuleDeclaration(splitLine, moduleName);
+            if (isModule == true)
+                moduleInit.push_back(myFile.tellg());
+            else if (isModule == false)
                 throw std::runtime_error("Invalid server definition.");
         }
     }
-    return serverInit;
+    return moduleInit;
 }
 
 void setAttributeByName(std::string attributeName, std::vector<std::string> splitLine,
@@ -108,9 +105,6 @@ void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers
     while (std::getline(myFile, line)) {
         if (line != "") {
             splitLine = split(line);
-            isServer = goodServDeclaration(splitLine);
-            if (isServer != 0)
-                throw std::runtime_error("Invalid server redefinition.");
             if (line.find("}") != std::string::npos) {
                 open--;
                 if (open == 0)
@@ -128,29 +122,19 @@ void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers
 }
 
 ConfigParser::ConfigParser(const char * path) {
-    std::vector<std::streampos> serverPosition;
-    std::vector<std::string>    fileSaved;
+    //std::vector<std::streampos> serverPosition;
+    //std::vector<std::string>    fileSaved;
+    std::vector<std::string>    splitFile;
     std::ifstream               myFile;
 
     std::string                 line;
     
     myFile.open(path);
-    if (!myFile.is_open()) {
+    if (!myFile.is_open())
         throw std::runtime_error("Config file not found");
-    }
-    else {
-        serverPosition = findServers(myFile);
-        myFile.clear();
-
-        for (size_t i = 0; i < serverPosition.size(); i++) {
-            myFile.seekg(serverPosition[i]);
-            saveServer(myFile, this->confServers);
-        }
-        myFile.close();
-        for (size_t i = 0; i < confServers.size(); i++) {
-            std::cout << "Port: " << confServers[i].getPort() << std::endl;
-        }
-    }
+    while (std::getline(myFile, line)) {
+        if (line != "") {
+            splitFile = split(line);
 }
 
 std::vector<ServerConfig> ConfigParser::getConfigServers() {

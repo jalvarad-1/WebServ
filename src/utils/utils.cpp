@@ -21,13 +21,39 @@ bool deleteChar(std::string &texto, char caracterABuscar) {
 }
 
 std::vector<std::string> split(std::string input) {
-    std::vector<std::string> palabras;
+    std::vector<std::string> words;
     std::istringstream iss(input);
-    std::string palabra;
+    std::string word;
 
-    while (iss >> palabra) {
-        palabras.push_back(palabra);
+    while (iss >> word) {
+        words.push_back(word);
     }
 
-    return palabras;
+    return words;
+}
+
+std::vector<std::string> splitAndIncludeSpecialChars(std::string input) {
+    std::vector<std::string> words;
+    std::istringstream iss(input);
+    std::string word;
+
+    while (iss >> word) {
+        std::string segment;
+        for (std::string::size_type i = 0; i < word.size(); ++i) {
+            char ch = word[i];
+            if (ch == '{' || ch == '}' || ch == ';') {
+                if (!segment.empty()) {
+                    words.push_back(segment);
+                    segment.clear();
+                }
+                words.push_back(std::string(1, ch));
+            } else {
+                segment += ch;
+            }
+        }
+        if (!segment.empty()) {
+            words.push_back(segment);
+        }
+    }
+    return words;
 }

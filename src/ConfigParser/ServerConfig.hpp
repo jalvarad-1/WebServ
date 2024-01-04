@@ -14,7 +14,7 @@ class ServerConfig
 private:
     int                                     _host;
     int                                     _port;
-    std::list<std::string>                  _serverName;
+    std::list<std::string>                  _serverNames;
     std::map<std::string, LocationRules>    _locations; //Mapa donde almacenamos la info de las locations
 
 public:

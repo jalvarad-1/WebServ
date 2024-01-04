@@ -35,7 +35,7 @@ int HTTPServer::acceptConnection()
 }
 
 void HTTPServer::readPetition(int socket) {
-    recv(socket, _buffer, 30000, 0);
+    recv(socket, _buffer, 30000, MSG_DONTWAIT);
     std::cout << "Leemos peticion" << std::endl;
     // read(poll_fds.fd, _buffer, 30000);
 }

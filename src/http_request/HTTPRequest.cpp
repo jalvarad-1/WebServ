@@ -29,6 +29,8 @@ bool HTTPRequest::parse(const std::string& raw_request) {
     std::istringstream ss(raw_request);
     std::string line;
 
+    // std::cout << "\n\n" << raw_request << std::endl;
+
     // 2. Analiza la línea de solicitud (por ejemplo: GET /index.html HTTP/1.1)
     if (!std::getline(ss, line))
         return false;

@@ -122,6 +122,8 @@ std::string getContentType(std::string file_path) {
             content_type = "video/mp4";
         else if (extension == "mpeg" || extension == "mpg")
             content_type = "video/mpeg";
+        else if (extension == "pdf")
+            content_type = "application/pdf";
         else
             content_type = "text/plain";
     }
@@ -143,7 +145,7 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
     sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), socket);
 
     response my_response;
-    my_response.file_path = "/home/asdas/archivo.mp3";
+    my_response.file_path = "/home/asdas/archivo";
     my_response.string_body = body;
     my_response.response_code = 200;
 

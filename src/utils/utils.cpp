@@ -31,3 +31,15 @@ std::vector<std::string> split(std::string input) {
 
     return palabras;
 }
+
+std::vector<std::string> split_char(std::string input, char delimiter) {
+    std::vector<std::string> palabras;
+    std::istringstream iss(input);
+    std::string palabra;
+
+    while (std::getline(iss, palabra, delimiter)) {
+        palabras.push_back(palabra);
+    }
+
+    return palabras;
+}

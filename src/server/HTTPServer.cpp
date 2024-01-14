@@ -1,6 +1,8 @@
 #include "HTTPServer.hpp"
 #include "MultiServer.hpp"
 
+#include <ctime>
+
 HTTPServer::HTTPServer(int domain, int service, int protocol,
             int port, u_long interface, int bklg, const ServerConfig & serverConfig):
             _serverConfig(serverConfig)
@@ -81,6 +83,54 @@ std::string readFromFile(std::string filename) {
     }
 }
 
+std::string getDate() {
+    time_t rawtime;
+    struct tm *timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = gmtime(&rawtime);
+    strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
+    return buffer;
+}
+
+std::string getContentType(std::string file_path) {
+    std::vector<std::string> path = split_char(file_path, '/');
+    std::string file = path.back();
+    std::vector<std::string> file_split = split_char(file, '.');
+    std::string extension;
+    std::string content_type;
+    if (file_split.size() > 1) {
+        extension = file_split.back();
+        if (extension == "html" || extension == "htm")
+            content_type = "text/html";
+        else if (extension == "json")
+            content_type = "text/json";
+        else if (extension == "xml")
+            content_type = "text/xml";
+        else if (extension == "jpeg")
+            content_type = "image/jpeg";
+        else if (extension == "png")
+            content_type = "image/png";
+        else if (extension == "gif")
+            content_type = "image/gif";
+        else if (extension == "mp3")
+            content_type = "audio/mpeg";
+        else if (extension == "wav")
+            content_type = "audio/wav";
+        else if (extension == "mp4")
+            content_type = "video/mp4";
+        else if (extension == "mpeg" || extension == "mpg")
+            content_type = "video/mpeg";
+        else
+            content_type = "text/plain";
+    }
+    else {
+        content_type = "text/plain";
+    }
+    return (content_type);
+}
+
 void HTTPServer::sendResponse(struct fd_status &status, int socket)
 {   
     HTTPRequest request(_buffer);
@@ -92,17 +142,28 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
     char body[512];
     sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), socket);
 
+    response my_response;
+    my_response.file_path = "/home/asdas/archivo.mp3";
+    my_response.string_body = body;
+    my_response.response_code = 200;
+
+    std::cout << "Extension: " << getContentType(my_response.file_path) << std::endl;
+
     char response[100+strlen(body)];
+    std::string date = getDate();
     sprintf(response,
         "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/html\r\n"
+        "Content-Type: %s\r\n"
         "Content-Length: %zu\r\n"
         "Connection: close\r\n"
-        "Accept-Ranges: bytes\r\n"
+        "Date: %s\r\n"
+        // "Accept-Ranges: bytes\r\n"
         "\r\n"
         "%s",
-        strlen(body),
-        body
+        getContentType(my_response.file_path).c_str(),
+        strlen(my_response.string_body.c_str()),
+        date.c_str(),
+        my_response.string_body.c_str()
     );
     send(socket, response, strlen(response), 0);
     std::cout << "Mandamos respuesta" << std::endl;

@@ -148,9 +148,6 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
     my_response.file_path = "/home/asdas/archivo";
     my_response.string_body = body;
     my_response.response_code = 200;
-
-    std::cout << "Extension: " << getContentType(my_response.file_path) << std::endl;
-
     char response[100+strlen(body)];
     std::string date = getDate();
     sprintf(response,
@@ -168,9 +165,7 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
         my_response.string_body.c_str()
     );
     send(socket, response, strlen(response), 0);
-    std::cout << "Mandamos respuesta" << std::endl;
     close(socket);
-    std::cout << "Cerramos socket: " << socket << std::endl;
 }
 
 // void HTTPServer::launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)

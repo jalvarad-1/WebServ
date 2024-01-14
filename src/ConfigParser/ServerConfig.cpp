@@ -14,6 +14,14 @@ void    ServerConfig::setRoot(std::string root) {
     this->_root = root;
 }
 
+void    ServerConfig::setErrorPages(int err_code, std::string page_body) {
+    this->_errorPages[err_code] = page_body;
+}
+
+std::string ServerConfig::getErrorBody(int err_code) {
+    return this->_errorPages[err_code];
+}
+
 int     ServerConfig::getPort() const{
     return this->_port;
 }

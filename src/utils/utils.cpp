@@ -20,6 +20,19 @@ bool deleteChar(std::string &texto, char caracterABuscar) {
     return false;
 }
 
+std::string readFromFile(std::string filename) {
+    std::ifstream file(filename.c_str());
+    std::stringstream buffer;
+
+    if (file.is_open()) {
+        buffer << file.rdbuf();
+        file.close();
+        return buffer.str();
+    } else {
+        return "No se pudo abrir el archivo.";
+    }
+}
+
 std::vector<std::string> split(std::string input) {
     std::vector<std::string> palabras;
     std::istringstream iss(input);

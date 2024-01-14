@@ -82,6 +82,13 @@ void    setValues(std::vector<std::string> splitLine, ServerConfig& servidor) {
         setRoot(splitLine, servidor);
 }
 
+void addErrorCodes(ServerConfig &servidor) {
+    servidor.setErrorPages(400, "<center><h1>42 WebServ</h1><hr><b><h2>Error 400</h2></b><h4>Bad Request.</h4></center>");
+    servidor.setErrorPages(404, "<center><h1>42 WebServ</h1><hr><b><h2>Error 404</h2></b><h4>Not Found.</h4></center>");
+    servidor.setErrorPages(500, "<center><h1>42 WebServ</h1><hr><b><h2>Error 500</h2></b><h4>Internal Server Error.</h4></center>");
+    servidor.setErrorPages(501, "<center><h1>42 WebServ</h1><hr><b><h2>Error 501</h2></b><h4>Not Implemented.</h4></center>");    
+}
+
 void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers) {
     std::vector<std::string>    splitLine;
     int                         isServer;
@@ -90,6 +97,7 @@ void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers
     ServerConfig                servidor;
 
     myFile.clear();
+    addErrorCodes(servidor);
     while (std::getline(myFile, line)) {
         if (line != "") {
             splitLine = split(line);
@@ -118,7 +126,7 @@ ConfigParser::ConfigParser(const char * path) {
     std::ifstream               myFile;
 
     std::string                 line;
-    
+
     myFile.open(path);
     if (!myFile.is_open()) {
         throw std::runtime_error("Config file not found");

@@ -70,19 +70,6 @@ void HTTPServer::handler()
     return ;
 }
 
-std::string readFromFile(std::string filename) {
-    std::ifstream file(filename.c_str());
-    std::stringstream buffer;
-
-    if (file.is_open()) {
-        buffer << file.rdbuf();
-        file.close();
-        return buffer.str();
-    } else {
-        return "No se pudo abrir el archivo.";
-    }
-}
-
 std::string getDate() {
     time_t rawtime;
     struct tm *timeinfo;
@@ -146,9 +133,18 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
 
     response my_response;
     my_response.file_path = "/home/asdas/archivo";
-    my_response.string_body = body;
-    my_response.response_code = 200;
-    char response[100+strlen(body)];
+    my_response.response_code = 501;
+
+    if (my_response.response_code != 200) {
+        std::string error_body = "Hola!!!";
+        // std::cout << this->_serverConfig.getErrorBody(my_response.response_code) << std::endl;
+        my_response.string_body = this->_serverConfig.getErrorBody(my_response.response_code);
+        my_response.file_path = "error.html";
+    }
+    else {
+        my_response.string_body = body;
+    }
+    char response[100+strlen(my_response.string_body.c_str())];
     std::string date = getDate();
     sprintf(response,
         "HTTP/1.1 200 OK\r\n"

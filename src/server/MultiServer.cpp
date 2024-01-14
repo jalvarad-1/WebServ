@@ -59,3 +59,4 @@ void MultiServer::set_fds(struct pollfd new_poll_fd) {
 void MultiServer::set_status(struct fd_status new_status) {
     status.push_back(new_status);
 }  
+

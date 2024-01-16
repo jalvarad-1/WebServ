@@ -4,6 +4,7 @@
 # include <iostream>
 # include <map>
 # include <vector>
+# include <list>
 // # include "LocationRules.hpp"
 # include <fstream>
 # include <string>
@@ -12,22 +13,19 @@
 class ServerConfig
 {
 private:
+    int                                     _host;
     int                                     _port;
-    std::vector<std::string>                _serverName;
-    std::string                             _root;
-    std::map<std::string, std::string>      _errorPages;
-    int                                     _maxBodySize;
-    // std::map<std::string, LocationRules>    _locations; //Mapa donde almacenamos la info de las locations
+    std::list<std::string>                  _serverNames;
+    // std::map<std::string, LocationRules *>    _locations; //Mapa donde almacenamos la info de las locations
 
 public:
     ServerConfig();
     ~ServerConfig();
+    void setHost(unsigned int host);
     void setPort(unsigned int port);
     void setServerName(std::string serverName);
-    void setRoot(std::string root);
     int getPort()const;
-    std::vector<std::string> getServerName();
-    std::string getRoot();
+    std::list<std::string> getServerNames();
 };
 
 #endif

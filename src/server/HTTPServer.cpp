@@ -137,7 +137,7 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
 {   
     HTTPRequest request(_buffer);
     // std::string range = request.getHeader("Range");
-    std::string root = status.server->_serverConfig.getRoot();
+    //std::string root = status.server->_serverConfig.getRoot();
     // std::string file = readFromFile(root + "/index.html");
     
     // std::string body = file;

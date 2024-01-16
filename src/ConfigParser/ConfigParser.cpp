@@ -62,24 +62,24 @@ void setServerName(std::vector<std::string> splitLine, ServerConfig& servidor) {
     }
 }
 
-void setRoot(std::vector<std::string> splitLine, ServerConfig& servidor) {
-    if (splitLine.size() == 1)
-        throw std::runtime_error("Empty root definition.");
-    else if (splitLine[1].find(";") == std::string::npos)
-        throw std::runtime_error("Root definition must finish with ';'.");
-    else {
-        deleteChar(splitLine[1], ';');
-        servidor.setRoot(splitLine[1]);
-    }
-}
+//void setRoot(std::vector<std::string> splitLine, ServerConfig& servidor) {
+//    if (splitLine.size() == 1)
+//        throw std::runtime_error("Empty root definition.");
+//    else if (splitLine[1].find(";") == std::string::npos)
+//        throw std::runtime_error("Root definition must finish with ';'.");
+//    else {
+//        deleteChar(splitLine[1], ';');
+//        servidor.setRoot(splitLine[1]);
+//    }
+//}
 
 void    setValues(std::vector<std::string> splitLine, ServerConfig& servidor) {
     if (splitLine[0] == "listen")
         setServerPort(splitLine, servidor);
     else if (splitLine[0] == "server_name")
         setServerName(splitLine, servidor);
-    else if (splitLine[0] == "root")
-        setRoot(splitLine, servidor);
+    //else if (splitLine[0] == "root")
+    //    setRoot(splitLine, servidor);
 }
 
 void    saveServer(std::ifstream& myFile, std::vector<ServerConfig>& confServers) {

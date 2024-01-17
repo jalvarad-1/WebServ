@@ -10,6 +10,7 @@ SRCS =	src/main.cpp\
 		src/ConfigParser/ServerConfig.cpp\
 		src/http_request/HTTPRequest.cpp\
         src/utils/utils.cpp\
+		src/server/response_code/ResponseCode.cpp\
 
 OBJS = $(SRCS:.cpp=.o)
 

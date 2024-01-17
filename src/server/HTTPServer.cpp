@@ -1,6 +1,6 @@
 #include "HTTPServer.hpp"
 #include "MultiServer.hpp"
-
+#include "response_code/ResponseCode.hpp"
 #include <ctime>
 
 HTTPServer::HTTPServer(int domain, int service, int protocol,
@@ -122,40 +122,35 @@ std::string getContentType(std::string file_path) {
 
 void HTTPServer::sendResponse(int socket)
 {   
+    // Esta clase se encarga de parsear la petición.
     HTTPRequest request(_buffer);
-    // std::string range = request.getHeader("Range");
-    //std::string root = status.server->_serverConfig.getRoot();
-    // std::string file = readFromFile(root + "/index.html");
-    
-    // std::string body = file;
-    char body[512];
-    sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), socket);
 
+    // En esta clase almacenamos todos los códigos de error y su mensaje.
+    ResponseCode response_codes;
+
+    // Clase que simula la respuesta que me va a llegar del rooting
     response my_response;
     my_response.file_path = "/home/asdas/archivo.html";
-    my_response.response_code = 200;
+    my_response.string_body = "Este es el mensaje que devolverá la página web!";
+    my_response.response_code = 400;
 
-    if (my_response.response_code != 200) {
-        std::string error_body = "Hola!!!";
-        // std::cout << this->_serverConfig.getErrorBody(my_response.response_code) << std::endl;
-        my_response.string_body = "La petición tiene un codigo diferente a 200";
-    }
-    else {
-        my_response.string_body = body;
+    char body[my_response.string_body.size()];
+
+    snprintf(body, sizeof(body), "%s", my_response.string_body.c_str());
     
-    }
-    std::cout << getContentType(my_response.file_path).c_str() << std::endl;
-    char response[100+strlen(my_response.string_body.c_str())];
+    char response[100+strlen(body)];
+
     std::string date = getDate();
     sprintf(response,
-        "HTTP/1.1 200 OK\r\n"
+        "HTTP/1.1 %d %s\r\n"
         "Content-Type: %s\r\n"
         "Content-Length: %zu\r\n"
         "Connection: close\r\n"
         "Date: %s\r\n"
-        // "Accept-Ranges: bytes\r\n"
         "\r\n"
         "%s",
+        my_response.response_code,
+        response_codes.get_code_string(my_response.response_code).c_str(),
         getContentType(my_response.file_path).c_str(),
         strlen(my_response.string_body.c_str()),
         date.c_str(),

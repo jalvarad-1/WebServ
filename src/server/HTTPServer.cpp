@@ -132,8 +132,8 @@ void HTTPServer::sendResponse(int socket)
     sprintf(body, "Hello from server on port %d and socket %d", getListeningPort(), socket);
 
     response my_response;
-    my_response.file_path = "/home/asdas/archivo";
-    my_response.response_code = 501;
+    my_response.file_path = "/home/asdas/archivo.html";
+    my_response.response_code = 200;
 
     if (my_response.response_code != 200) {
         std::string error_body = "Hola!!!";
@@ -142,7 +142,9 @@ void HTTPServer::sendResponse(int socket)
     }
     else {
         my_response.string_body = body;
+    
     }
+    std::cout << getContentType(my_response.file_path).c_str() << std::endl;
     char response[100+strlen(my_response.string_body.c_str())];
     std::string date = getDate();
     sprintf(response,

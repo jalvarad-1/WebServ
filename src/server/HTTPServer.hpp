@@ -30,7 +30,7 @@ class HTTPServer
         int acceptConnection();
         void handler();
         void readPetition(int socket);
-        void sendResponse(struct fd_status &status, int socket);
+        void sendResponse(int socket);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();

@@ -40,7 +40,7 @@ void MultiServer::run() {
                 // if (status[i].port == true) {
                 socket = status[i].server->acceptConnection();
                 status[i].server->readPetition(socket);
-                status[i].server->sendResponse(status[i], socket);
+                status[i].server->sendResponse(socket);
                 // }
             }
         }

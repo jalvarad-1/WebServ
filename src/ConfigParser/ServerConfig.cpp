@@ -2,36 +2,24 @@
 
 ServerConfig::ServerConfig() {}
 
+void    ServerConfig::setHost(unsigned int host) {
+    this->_host = host;
+}
+
 void    ServerConfig::setPort(unsigned int port) {
     this->_port = port;
 }
 
 void    ServerConfig::setServerName(std::string serverName) {
-    this->_serverName.push_back(serverName);
-}
-
-void    ServerConfig::setRoot(std::string root) {
-    this->_root = root;
-}
-
-void    ServerConfig::setErrorPages(int err_code, std::string page_body) {
-    this->_errorPages[err_code] = page_body;
-}
-
-std::string ServerConfig::getErrorBody(int err_code) {
-    return this->_errorPages[err_code];
+    this->_serverNames.push_back(serverName);
 }
 
 int     ServerConfig::getPort() const{
     return this->_port;
 }
 
-std::vector<std::string>    ServerConfig::getServerName() {
-    return this->_serverName;
-}
-
-std::string ServerConfig::getRoot() {
-    return this->_root;
+std::list<std::string>    ServerConfig::getServerNames() {
+    return this->_serverNames;
 }
 
 ServerConfig::~ServerConfig() {}

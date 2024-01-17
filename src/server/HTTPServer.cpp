@@ -120,11 +120,11 @@ std::string getContentType(std::string file_path) {
     return (content_type);
 }
 
-void HTTPServer::sendResponse(struct fd_status &status, int socket)
+void HTTPServer::sendResponse(int socket)
 {   
     HTTPRequest request(_buffer);
     // std::string range = request.getHeader("Range");
-    std::string root = status.server->_serverConfig.getRoot();
+    //std::string root = status.server->_serverConfig.getRoot();
     // std::string file = readFromFile(root + "/index.html");
     
     // std::string body = file;
@@ -138,8 +138,7 @@ void HTTPServer::sendResponse(struct fd_status &status, int socket)
     if (my_response.response_code != 200) {
         std::string error_body = "Hola!!!";
         // std::cout << this->_serverConfig.getErrorBody(my_response.response_code) << std::endl;
-        my_response.string_body = this->_serverConfig.getErrorBody(my_response.response_code);
-        my_response.file_path = "error.html";
+        my_response.string_body = "La petición tiene un codigo diferente a 200";
     }
     else {
         my_response.string_body = body;

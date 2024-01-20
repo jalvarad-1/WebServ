@@ -8,12 +8,6 @@
 #include "ListeningSocket.hpp"
 #include <poll.h>
 
-struct response {
-    std::string     string_body;
-    std::string     file_path;
-    int             response_code;
-};
-
 class HTTPServer
 {
     private:

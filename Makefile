@@ -1,7 +1,7 @@
 CXX := g++
 NAME := webserv
 CXXFLAGS := -Wall -Wextra -std=c++98
-SRCS =	src/main.cpp\
+SRCS =	src/main_to_routing.cpp\
 		src/server/HTTPServer.cpp\
 		src/server/ListeningSocket.cpp\
 		src/server/MultiServer.cpp\
@@ -11,6 +11,8 @@ SRCS =	src/main.cpp\
 		src/http_request/HTTPRequest.cpp\
         src/utils/utils.cpp\
 		src/server/response_code/ResponseCode.cpp\
+		src/server/routing/Routing_ns.cpp\
+
 
 OBJS = $(SRCS:.cpp=.o)
 

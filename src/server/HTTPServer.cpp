@@ -2,6 +2,7 @@
 #include "MultiServer.hpp"
 #include "response_code/ResponseCode.hpp"
 #include <ctime>
+#include "routing/Routing_ns.hpp"
 
 HTTPServer::HTTPServer(int domain, int service, int protocol,
             int port, u_long interface, int bklg, const ServerConfig & serverConfig):
@@ -40,7 +41,8 @@ int HTTPServer::acceptConnection()
 void HTTPServer::readPetition(int socket) {
     recv(socket, _buffer, 30000, MSG_DONTWAIT);
     std::cout << "Leemos peticion" << std::endl;
-    // read(poll_fds.fd, _buffer, 30000);
+    std::string pepe(_buffer);
+    std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
 }
 
 void HTTPServer::handler()
@@ -84,7 +86,8 @@ std::string getDate() {
 
 std::string getContentType(std::string file_path) {
     std::vector<std::string> path = split_char(file_path, '/');
-    std::string file = path.back();
+    std::string file = path.empty()? "" : path.back();
+    std::cout << "segunda linea file path" << std::endl;
     std::vector<std::string> file_split = split_char(file, '.');
     std::string extension;
     std::string content_type;
@@ -118,6 +121,7 @@ std::string getContentType(std::string file_path) {
     else {
         content_type = "text/plain";
     }
+    std::cout << "getContentType" << std::endl;
     return (content_type);
 }
 
@@ -125,15 +129,15 @@ void HTTPServer::sendResponse(int socket)
 {   
     // Esta clase se encarga de parsear la petición.
     HTTPRequest request(_buffer);
-
+    std::cout << "Uri: " << request.getURI() << std::endl;
     // En esta clase almacenamos todos los códigos de error y su mensaje.
     ResponseCode response_codes;
 
     // Clase que simula la respuesta que me va a llegar del rooting
-    response my_response;
-    my_response.file_path = "/home/asdas/archivo.html";
-    my_response.string_body = "Este es el mensaje que devolverá la página web!";
-    my_response.response_code = 400;
+    Response my_response = Routing::returnResource(&this->_serverConfig, request);
+    //my_response.file_path = "/home/asdas/archivo.html";
+    //my_response.string_body = "Este es el mensaje que devolverá la página web!";
+    //my_response.response_code = 400;
 
     char body[my_response.string_body.size()];
 
@@ -142,6 +146,8 @@ void HTTPServer::sendResponse(int socket)
     char response[100+strlen(body)];
 
     std::string date = getDate();
+    std::cout << my_response.string_body << std::endl;
+    std::cout << "sendResponse" << std::endl;
     sprintf(response,
         "HTTP/1.1 %d %s\r\n"
         "Content-Type: %s\r\n"

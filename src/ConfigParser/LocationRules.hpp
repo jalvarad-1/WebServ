@@ -8,6 +8,7 @@
 class LocationRules
 {
 private:
+    std::string                         _key_value;
     std::map<int, std::string>  _error_pages;
     std::string                         _root;
     int                                 _maxBodySize;
@@ -22,13 +23,19 @@ private:
 public:
     LocationRules();
     ~LocationRules();
-
+    //temporary constructor
+    LocationRules(std::string key_value, std::map<int,
+                std::string>  error_pages, std::string root, int maxBodySize,
+                std::list<std::string> allowedMethods, bool dir_list,
+                std::string default_file, std::string cgi_pass);
     std::map<int, std::string>  getErrorPages() const;
     std::string getRoot() const;
     int getMaxBodySize() const;
     std::list<std::string> getAllowedMethods() const;
     bool getDirList() const;
     std::string getDefaultFile() const;
+    std::string getCgiPass() const;
+    std::string getKeyValue() const;
 };
 
 #endif

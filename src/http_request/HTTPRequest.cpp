@@ -32,12 +32,13 @@ bool HTTPRequest::parse(const std::string& raw_request) {
     // std::cout << "\n\n" << raw_request << std::endl;
 
     // 2. Analiza la línea de solicitud (por ejemplo: GET /index.html HTTP/1.1)
-    if (!std::getline(ss, line))
-        return false;
+    std::getline(ss, line);
     std::istringstream request_line(line);
-    if (!(request_line >> _method >> _uri >> _http_version))
-        return false;
-
+    request_line >> _method >> _uri >> _http_version;
+    _method = _method.empty()? "GET": _method;
+    _uri = _uri.empty() ? "/": _uri;
+    _http_version = "HTTP/1.1";
+    std::cout << "parseando linea request" << std::endl ;
     while (std::getline(ss, line) && !line.empty() && line != "\r")
     {
         std::size_t colon_pos = line.find(':');
@@ -61,7 +62,6 @@ bool HTTPRequest::parse(const std::string& raw_request) {
             return false;
         }
     }
-    
     if (methodAcceptsBody(_method))
     {
         // se utiliza ostringstream por temas de performance, ya que no creas una nueva cadena en cada iteración como se haría si hiciera _body += line

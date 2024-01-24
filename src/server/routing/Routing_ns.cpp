@@ -5,7 +5,6 @@ LocationRules * Routing::determineResourceLocation(ServerConfig *serverConfig, H
     std::string uri = httpRequest.getURI();
     std::map<std::string, LocationRules*> locations = serverConfig->getLocations();
     while (!uri.empty()) {
-        std::cout << "funcion determineResourceLocation" << std::endl;
         std::map<std::string, LocationRules*>::iterator it = locations.find(uri);
         if (it != locations.end())
             return it->second;
@@ -23,7 +22,6 @@ LocationRules * Routing::determineResourceLocation(ServerConfig *serverConfig, H
 
 bool Routing::isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods)
 {
-    std::cout << "funcion isAllowedMethod" << std::endl;
     std::list<std::string>::const_iterator it = std::find(allowed_methods.begin(), 
                                             allowed_methods.end(), 
                                             method);
@@ -36,7 +34,6 @@ std::string Routing::removeKeyValue(std::string toRemove, std::string str)
     if (toRemove == "default")
         return str;
     pos = str.find(toRemove);
-    std::cout << "funcion removeKeyValue" << pos << "|" << toRemove<< std::endl;
     return str.substr(pos + toRemove.length());
 }
 
@@ -49,7 +46,6 @@ short int Routing::typeOfResource(const std::string& path)
         return ISFILE; // Verifica si es un archivo regular
     else if (S_ISDIR(statbuf.st_mode))
         return ISDIR;
-    std::cout << "funcion typeOfResource" << std::endl;
     return false;
 }
 
@@ -70,7 +66,6 @@ Response Routing::processFilePath(std::string resource_path)
         inFileStream.close();
         response.response_code = 200;
         response.string_body = buffer;
-    std::cout << "funcion processFilePath " << buffer<< std::endl;
         return response;
     }
     response.response_code = 403;
@@ -105,11 +100,11 @@ Response Routing::processDirPath(std::string root, std::string resource_path, Lo
         return response;
         //listar como en google?
     }
-    std::cout << "funcion processDirPath" << std::endl;
     response.file_path = "";
     response.response_code = 403;
     return response;
 }
+
 
 Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules *locationRule)
 {
@@ -121,7 +116,6 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     if (allowed_method)
     {
         file_path = locationRule->getRoot() + removeKeyValue(locationRule->getKeyValue(), httpRequest.getURI());
-        std::cout << "hola" << std::endl;
         if (!locationRule->getCgiPass().empty())
             std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
         else
@@ -141,16 +135,17 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     }
     else
         response.response_code = 405;
-    std::cout << "funcion determinePathRequestedResource" << std::endl;
-    //comprobar si es un error y pasarlo por la función de busqueda de archivo de error;
+    //review if its an error and if response.path is empty then its an error, return corresponding error page
+    //
+
+
+    //revisar ejecución cgi, ya que es posible que para cumplir el subject sea mejor algo como cgipass [extension] [archivo cgi]
+    //revisar el tester de la intra
     return response;
 }
 
 Response        Routing::returnResource(ServerConfig *serverConfig, HTTPRequest httpRequest)
 {
-    std::cout << "hey 1" << std::endl;
     LocationRules *location = determineResourceLocation(serverConfig, httpRequest);
-    std::cout << "hey 2" << std::endl;
-    std::cout << "funcion returnResource" << std::endl;
     return determinePathRequestedResource(httpRequest, location);
 }

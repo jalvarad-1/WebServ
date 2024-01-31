@@ -76,7 +76,8 @@ namespace simpleParser {
                 case ERROR_PAGES:
                     if (mCurrentToken->mType != INTEGER_LITERAL)
                         return false;         
-                    error_code = std::stoi(mCurrentToken->mText);
+                    // error_code = std::stoi(mCurrentToken->mText);
+                    error_code = std::atoi(mCurrentToken->mText.c_str());
                     ++mCurrentToken;
                     if (expectOperator(";").mType != EMPTY)
                         return false;
@@ -95,7 +96,8 @@ namespace simpleParser {
                 case MAX_BODY_SIZE:
                     if (mCurrentToken->mType != INTEGER_LITERAL)
                         return false;
-                    ret = server.locations[key_value].setMaxBodySize( std::stoi(mCurrentToken->mText) );
+                    // ret = server.locations[key_value].setMaxBodySize( std::stoi(mCurrentToken->mText) );
+                    ret = server.locations[key_value].setMaxBodySize( std::atoi(mCurrentToken->mText.c_str()) );
                     break;
                 
                 case AUTO_INDEX:

@@ -134,7 +134,7 @@ void HTTPServer::sendResponse(int socket)
     ResponseCode response_codes;
 
     // Clase que simula la respuesta que me va a llegar del rooting
-    Response my_response = Routing::returnResource(&this->_serverConfig, request);
+    Response my_response = Routing::returnResource(this->_serverConfig, request);
     //my_response.file_path = "/home/asdas/archivo.html";
     //my_response.string_body = "Este es el mensaje que devolverá la página web!";
     //my_response.response_code = 400;

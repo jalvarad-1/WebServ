@@ -1,11 +1,11 @@
 #include "Routing_ns.hpp"
 
-LocationRules * Routing::determineResourceLocation(ServerConfig *serverConfig, HTTPRequest httpRequest)
+LocationRules Routing::determineResourceLocation(ServerConfig serverConfig, HTTPRequest httpRequest)
 {
     std::string uri = httpRequest.getURI();
-    std::map<std::string, LocationRules*> locations = serverConfig->getLocations();
+    std::map<std::string, LocationRules> locations = serverConfig.getLocations();
     while (!uri.empty()) {
-        std::map<std::string, LocationRules*>::iterator it = locations.find(uri);
+        std::map<std::string, LocationRules>::iterator it = locations.find(uri);
         if (it != locations.end())
             return it->second;
 
@@ -72,16 +72,16 @@ Response Routing::processFilePath(std::string resource_path)
     return response;
 }
 
-Response Routing::processDirPath(std::string root, std::string resource_path, LocationRules *locationRule)
+Response Routing::processDirPath(std::string root, std::string resource_path, LocationRules locationRule)
 {
     Response response;
-    std::string default_file = root + "/"+locationRule->getDefaultFile();
+    std::string default_file = root + "/"+locationRule.getIndex();
     std::string buffer;
 
     std::cout << default_file << std::endl;
     if (!default_file.empty() && !access(default_file.c_str(), R_OK))//try to open a default file
         return processFilePath(default_file);
-    else if (default_file.empty() && locationRule->getDirList()) // try  to open dir
+    else if (default_file.empty() && locationRule.isAuto_index()) // try  to open dir
     {
         DIR * dir;
         struct dirent *entry;
@@ -106,24 +106,24 @@ Response Routing::processDirPath(std::string root, std::string resource_path, Lo
 }
 
 
-Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules *locationRule)
+Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule)
 {
     std::string file_path;
     std::string body;
-    bool allowed_method = isAllowedMethod(httpRequest.getMethod(), locationRule->getAllowedMethods());
+    bool allowed_method = isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods());
     Response response;
     
     if (allowed_method)
     {
-        file_path = locationRule->getRoot() + removeKeyValue(locationRule->getKeyValue(), httpRequest.getURI());
-        if (!locationRule->getCgiPass().empty())
+        file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
+        if (!locationRule.getCgiPass().empty())
             std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
         else
         {
             switch(typeOfResource(file_path))
             {
                 case ISDIR:
-                    response = processDirPath(locationRule->getRoot(), file_path, locationRule);//process directory
+                    response = processDirPath(locationRule.getRoot(), file_path, locationRule);//process directory
                     break;
                 case ISFILE:
                     response = processFilePath(file_path);//process file
@@ -144,8 +144,8 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     return response;
 }
 
-Response        Routing::returnResource(ServerConfig *serverConfig, HTTPRequest httpRequest)
+Response        Routing::returnResource(ServerConfig serverConfig, HTTPRequest httpRequest)
 {
-    LocationRules *location = determineResourceLocation(serverConfig, httpRequest);
+    LocationRules location = determineResourceLocation(serverConfig, httpRequest);
     return determinePathRequestedResource(httpRequest, location);
 }

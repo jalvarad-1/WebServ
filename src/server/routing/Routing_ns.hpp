@@ -21,14 +21,14 @@ struct Response {
 
 namespace Routing
 {
-    Response        returnResource(ServerConfig *serverConfig, HTTPRequest httpRequest);//0
-    LocationRules   *determineResourceLocation(ServerConfig *serverConfig, HTTPRequest httpRequest);//1
-    Response        determinePathRequestedResource(HTTPRequest httpRequest, LocationRules *locationRule);//2
+    Response        returnResource(ServerConfig serverConfig, HTTPRequest httpRequest);//0
+    LocationRules   determineResourceLocation(ServerConfig serverConfig, HTTPRequest httpRequest);//1
+    Response        determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule);//2
     bool            isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods);//3
     std::string     removeKeyValue(std::string toRemove, std::string str);//3
     short int       typeOfResource(const std::string& path);//3
 
-    Response        processDirPath(std::string root, std::string file_path, LocationRules *locationRule);//3
+    Response        processDirPath(std::string root, std::string file_path, LocationRules locationRule);//3
     Response        processFilePath(std::string resource_path);//3
 }
 /*

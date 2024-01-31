@@ -12,13 +12,12 @@ private:
     std::map<int, std::string>  _error_pages;
     std::string                         _root;
     int                                 _maxBodySize;
-    std::list<std::string>              _allowedMethods;
-    bool                                _dir_list;
-    std::string                         _default_file;
+    std::list<std::string>              _allowedMethods; //AUTO_INDEX
+    bool                                _auto_index;
+    std::string                         _index;
     std::string                         _cgi_pass;
+    std::string                         _cgi_extension;
     //redirect loquesea.com  -> debe enviar status 300 y además un header con Location y el redirect
-    //listing directory on or of
-    //Set a default file to answer if the request is a directory.
 
 public:
     LocationRules();
@@ -26,16 +25,27 @@ public:
     //temporary constructor
     LocationRules(std::string key_value, std::map<int,
                 std::string>  error_pages, std::string root, int maxBodySize,
-                std::list<std::string> allowedMethods, bool dir_list,
-                std::string default_file, std::string cgi_pass);
+                std::list<std::string> allowedMethods, bool auto_index,
+                std::string index, std::string cgi_pass);
     std::map<int, std::string>  getErrorPages() const;
     std::string getRoot() const;
     int getMaxBodySize() const;
     std::list<std::string> getAllowedMethods() const;
-    bool getDirList() const;
-    std::string getDefaultFile() const;
+    bool isAuto_index() const;
+    std::string getIndex() const;
     std::string getCgiPass() const;
     std::string getKeyValue() const;
+
+    void setErrorPage(int error_code, std::string error_page);
+    void setRoot(std::string root);
+    void setIndex(std::string index);
+    void setMaxBodySize(int maxBodySize);
+    void setAutoIndex(bool auto_index);
+    bool setAllowedMethod(std::string allowedMethod);
+    bool setCGIpass(std::string cgi_extension, std::string cgi_pass);
+    void setKeyValue(std::string key_value);
+
+    void printAttributes() const;
 };
 
 #endif

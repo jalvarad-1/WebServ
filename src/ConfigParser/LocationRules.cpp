@@ -1,8 +1,13 @@
 #include "LocationRules.hpp"
 
 LocationRules::LocationRules() {
-    std::cout << "LocationRules constructor called" << std::endl;
     _key_value = "default";
+    _root = "";
+    _maxBodySize = 0; //// if 0 is setted, there is no limit
+    _auto_index = false;
+    _index = "";
+    _cgi_pass = "";
+    _cgi_extension = "";
 }
 
 LocationRules::LocationRules(std::string key_value,std::map<int,
@@ -66,19 +71,28 @@ void LocationRules::setErrorPage(int error_code, std::string error_page)
     this->_error_pages[error_code] = error_page;
 }
 
-void LocationRules::setRoot(std::string root)
+bool LocationRules::setRoot(std::string root)
 {
+    if (root != "")
+        return false;
     this->_root = root;
+    return true;
 }
 
-void LocationRules::setIndex(std::string index)
+bool LocationRules::setIndex(std::string index)
 {
+    if (index != "")
+        return false;
     this->_index = index;
+    return true;
 }
 
-void LocationRules::setMaxBodySize(int maxBodySize)
+bool LocationRules::setMaxBodySize(int maxBodySize)
 {
+    if (maxBodySize < 0 || _maxBodySize != 0)
+        return false;
     this->_maxBodySize = maxBodySize;
+    return true;
 }
 
 void LocationRules::setAutoIndex(bool auto_index)
@@ -98,7 +112,8 @@ bool LocationRules::setAllowedMethod(std::string allowedMethod)
 
 bool LocationRules::setCGIpass(std::string cgi_extension, std::string cgi_pass)
 {
-    //review if is an extension
+    if (_cgi_pass != "" || _cgi_extension != "")
+        return false;
     if (cgi_extension[0] != '.' || cgi_extension.length() < 2 || cgi_pass.empty())
         return false;
     _cgi_pass = cgi_pass;

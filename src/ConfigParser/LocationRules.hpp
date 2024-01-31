@@ -9,7 +9,7 @@ class LocationRules
 {
 private:
     std::string                         _key_value;
-    std::map<int, std::string>  _error_pages;
+    std::map<int, std::string>          _error_pages;
     std::string                         _root;
     int                                 _maxBodySize;
     std::list<std::string>              _allowedMethods; //AUTO_INDEX
@@ -37,9 +37,9 @@ public:
     std::string getKeyValue() const;
 
     void setErrorPage(int error_code, std::string error_page);
-    void setRoot(std::string root);
-    void setIndex(std::string index);
-    void setMaxBodySize(int maxBodySize);
+    bool setRoot(std::string root);
+    bool setIndex(std::string index);
+    bool setMaxBodySize(int maxBodySize);
     void setAutoIndex(bool auto_index);
     bool setAllowedMethod(std::string allowedMethod);
     bool setCGIpass(std::string cgi_extension, std::string cgi_pass);

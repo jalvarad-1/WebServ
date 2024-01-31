@@ -13,7 +13,7 @@
 class ServerConfig
 {
 private:
-    int                                     _host;
+    unsigned int                            _host;
     int                                     _port;
     bool                                    _empty_server;                         
     std::list<std::string>                  _serverNames;

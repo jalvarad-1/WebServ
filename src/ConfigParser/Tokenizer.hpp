@@ -13,7 +13,7 @@ namespace simpleParser {
         STRING_LITERAL,
         OPERATOR,
         COMMENT,
-        EMPTY,
+        EMPTY, // No token ever has this type
     };
 
     static const char* sTokenTypeStrings[] = {
@@ -68,6 +68,6 @@ namespace simpleParser {
         CONF_TYPE mType;
 
     };
-} // namespace simpleParser
+}
 
 #endif

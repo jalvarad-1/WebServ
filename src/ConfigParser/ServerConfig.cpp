@@ -16,14 +16,6 @@ ServerConfig::ServerConfig(int host, int port, std::list<std::string> serverName
     this->locations = locations;
 }
 
-void    ServerConfig::setHost(unsigned int host) {
-    this->_host = host;
-}
-
-void    ServerConfig::setPort(unsigned int port) {
-    this->_port = port;
-}
-
 void    ServerConfig::setServerName(std::string serverName) {
     if (std::find(_serverNames.begin(), _serverNames.end(), serverName) == this->_serverNames.end())
         _serverNames.push_back(serverName);
@@ -52,6 +44,9 @@ ServerConfig::~ServerConfig() {
 }
 
 bool ServerConfig::setHostAndPort(std::string & hostAndPort){
+    if (!_empty_server)
+        return false;
+    
     std::string host, port;
     std::size_t pos = hostAndPort.find(':');
     if (pos == std::string::npos)
@@ -66,7 +61,8 @@ bool ServerConfig::setHostAndPort(std::string & hostAndPort){
     catch (std::exception & e) {
         return false;
     }
-    if (this->_host == INADDR_NONE || this->_port < 0 || pos != port.length())
+    // INADDR_NONE is -1 and 255.255.255.255 is -1, but is a valid ip
+    if ((this->_host == INADDR_NONE && host != "255.255.255.255") || this->_port < 0 || pos != port.length())
         return false;
     _empty_server = false;
     return true;

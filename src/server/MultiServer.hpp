@@ -7,8 +7,7 @@
 #include <cstring> // Para memset
 // #include <chrono>  // Para la hora
 #include <cstdlib>
-#include "../ConfigParser/ConfigParser.hpp"
-#include "../ConfigParser2/Parser.hpp"
+#include "../ConfigParser/Parser.hpp"
 
 struct fd_status{
     // std::chrono::system_clock::time_point fecha;

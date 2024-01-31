@@ -1,5 +1,6 @@
 #include "HTTPServer.hpp"
 #include "MultiServer.hpp"
+#include "../utils/utils.hpp"
 #include "response_code/ResponseCode.hpp"
 #include <ctime>
 #include "routing/Routing_ns.hpp"

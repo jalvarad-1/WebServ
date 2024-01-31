@@ -27,6 +27,8 @@ namespace simpleParser {
     }
 
     bool Parser::expectLocationDefinition(ServerConfig & server) {
+        if (mCurrentToken == mEndToken)
+            return false; 
         if (mCurrentToken->mType == STRING_LITERAL && mCurrentToken->mText[0] == '/') {
             std::string key_value = mCurrentToken->mText;
             server.locations[key_value].setKeyValue(key_value);
@@ -38,8 +40,8 @@ namespace simpleParser {
                 while(expectOperator("}").mType == EMPTY) {
                     type = expectType();
 
-                    if (!expectAttributesDefinition(server , key_value, type.mType)) {// TODO We have a location attribute!!
-                        std::cout << "Location no configuarado correctamente" << std::endl;// 
+                    if (!expectAttributesDefinition(server , key_value, type.mType)) {
+                        std::cout << "Location no configuarado correctamente" << std::endl;
                         return false;
                     }
                 }
@@ -70,7 +72,7 @@ namespace simpleParser {
                         return false;
                     server.setServerName( mCurrentToken->mText );
                     break;
-                
+
                 case ERROR_PAGES:
                     if (mCurrentToken->mType != INTEGER_LITERAL)
                         return false;         
@@ -82,17 +84,17 @@ namespace simpleParser {
                     break;
                 
                 case ROOT:
-                    server.locations[key_value].setRoot( mCurrentToken->mText );
+                    ret = server.locations[key_value].setRoot( mCurrentToken->mText );
                     break;
                 
                 case INDEX:
-                    server.locations[key_value].setIndex( mCurrentToken->mText );
+                    ret = server.locations[key_value].setIndex( mCurrentToken->mText );
                     break;
                 
                 case MAX_BODY_SIZE:
                     if (mCurrentToken->mType != INTEGER_LITERAL)
                         return false;
-                    server.locations[key_value].setMaxBodySize( std::stoi(mCurrentToken->mText) );
+                    ret = server.locations[key_value].setMaxBodySize( std::stoi(mCurrentToken->mText) );
                     break;
                 
                 case AUTO_INDEX:
@@ -113,8 +115,9 @@ namespace simpleParser {
                     mCurrentToken++;
                     if (expectOperator(";").mType != EMPTY)
                         return false;
-                    ret = server.locations[key_value].setCGIpass( tmp, mCurrentToken->mText ); 
+                    ret = server.locations[key_value].setCGIpass( tmp, mCurrentToken->mText );
                     break;
+                
                 default:
                     return false;
                     break;
@@ -172,7 +175,8 @@ namespace simpleParser {
         
         while (mCurrentToken != mEndToken) {
             if (!expectServerDefinition()) {
-                std::cerr << "Unknown identifier: " << mCurrentToken->mText << " line: " << 1 + mCurrentToken->mLineNumber << "." << std:: endl;
+                std::cerr << "Unknown identifier: " << mCurrentToken->mText;
+                std::cerr << " line: " << 1 + mCurrentToken->mLineNumber << "." << std:: endl;
                 exit(1); //TODO Throw exception
             }
         }

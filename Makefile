@@ -5,15 +5,14 @@ SRCS =	src/main.cpp\
 		src/server/HTTPServer.cpp\
 		src/server/ListeningSocket.cpp\
 		src/server/MultiServer.cpp\
-		src/ConfigParser/ConfigParser.cpp\
+		src/ConfigParser/Parser.cpp\
+		src/ConfigParser/Tokenizer.cpp\
 		src/ConfigParser/LocationRules.cpp\
 		src/ConfigParser/ServerConfig.cpp\
 		src/http_request/HTTPRequest.cpp\
         src/utils/utils.cpp\
 		src/server/response_code/ResponseCode.cpp\
 		src/server/routing/Routing_ns.cpp\
-		src/ConfigParser2/Tokenizer.cpp\
-		src/ConfigParser2/Parser.cpp\
 
 
 OBJS = $(SRCS:.cpp=.o)

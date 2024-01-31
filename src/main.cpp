@@ -1,28 +1,32 @@
 #include "server/MultiServer.hpp"
 
-#include "ConfigParser2/Parser.hpp"
-#include "ConfigParser/ConfigParser.hpp"
+#include "ConfigParser/Parser.hpp"
 int main(int argc, char **argv)
 {
     std::cout << "simpleparser 0.1\n" << std::endl;
     std::ifstream inFileStream(argv[1]);
-    if (inFileStream.is_open()) {
-        std::string buffer;
-        inFileStream.seekg(0, std::ios::end);
-        buffer.resize(inFileStream.tellg());
-        inFileStream.seekg(0, std::ios::beg);
-        inFileStream.read(&buffer[0], buffer.size());
-        inFileStream.close();
-        std::cout << "File content:\n" << buffer << std::endl;
-        
-        simpleParser::Tokenizer tokenizer;
-        std::vector<simpleParser::Token> tokens = tokenizer.parse(buffer);
-        for (size_t i = 0; i < tokens.size(); i++) {
-            tokens[i].debugPrint();
-        }
-        simpleParser::Parser parser;
-        parser.parse(tokens);
+
+    if (!inFileStream.is_open()) {
+        std::cerr << "Error: Could not open file " << argv[1] << std::endl;
+        return 1;
     }
+
+    std::string buffer;
+    inFileStream.seekg(0, std::ios::end);
+    buffer.resize(inFileStream.tellg());
+    inFileStream.seekg(0, std::ios::beg);
+    inFileStream.read(&buffer[0], buffer.size());
+    inFileStream.close();
+    std::cout << "File content:\n" << buffer << std::endl;
+
+    simpleParser::Tokenizer tokenizer;
+    std::vector<simpleParser::Token> tokens = tokenizer.parse(buffer);
+    for (size_t i = 0; i < tokens.size(); i++) {
+        tokens[i].debugPrint();
+    }
+    simpleParser::Parser parser;
+    parser.parse(tokens);
+
 
 
     //std::string buffer;

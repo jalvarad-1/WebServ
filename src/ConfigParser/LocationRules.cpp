@@ -73,7 +73,7 @@ void LocationRules::setErrorPage(int error_code, std::string error_page)
 
 bool LocationRules::setRoot(std::string root)
 {
-    if (root != "")
+    if (_root != "")
         return false;
     this->_root = root;
     return true;
@@ -81,7 +81,7 @@ bool LocationRules::setRoot(std::string root)
 
 bool LocationRules::setIndex(std::string index)
 {
-    if (index != "")
+    if (_index != "")
         return false;
     this->_index = index;
     return true;

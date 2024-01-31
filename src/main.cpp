@@ -3,7 +3,10 @@
 #include "ConfigParser/Parser.hpp"
 int main(int argc, char **argv)
 {
-    std::cout << "simpleparser 0.1\n" << std::endl;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <config file>" << std::endl;
+        return 1;
+    }
     std::ifstream inFileStream(argv[1]);
 
     if (!inFileStream.is_open()) {
@@ -27,34 +30,11 @@ int main(int argc, char **argv)
     simpleParser::Parser parser;
     parser.parse(tokens);
 
-
-
-    //std::string buffer;
-    //exit(1);
-    //try {
-    //    ConfigParser serverConfig(argv[1]);
-    //    MultiServer multi(serverConfig.getConfigServers());
-    //    multi.run();
-    //    (void)argc;
-    //    (void)argv;
-    //    return 0;
-    //} catch (const std::exception& e) {
-    //    std::cerr << "Error: " << e.what() << std::endl;
-    //    return -1;
-    //}
+    try {
+        MultiServer multi(parser.getConfigServers());
+        multi.run();
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return -1;
+    }
 }
-
-    //   std::ifstream inFileStream(resource_path.c_str());
-    //
-    //if (inFileStream.is_open())
-    //{
-    //    std::string		buffer;
-	//	inFileStream.seekg(0, std::ios::end);
-	//	buffer.resize(inFileStream.tellg());
-	//	inFileStream.seekg(0, std::ios::beg);
-	//	inFileStream.read(&buffer[0], buffer.size());
-    //    inFileStream.close();
-    //    response.response_code = 200;
-    //    response.string_body = buffer;
-    //    return response;
-    //}

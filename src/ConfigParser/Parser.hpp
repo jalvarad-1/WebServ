@@ -11,6 +11,7 @@ namespace simpleParser {
     public:
         Parser();
         void parse(std::vector<Token> & tokens);
+        std::vector<ServerConfig> getConfigServers();
         void printServers();
     
     private:
@@ -31,7 +32,6 @@ namespace simpleParser {
         std::map <std::string, Type> mTypes;
 
     };
-
 }
 
 #endif

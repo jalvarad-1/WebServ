@@ -7,7 +7,7 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     // Basic socket creation
     _address.sin_family = domain;
     _address.sin_port = htons(port);
-    _address.sin_addr.s_addr = htonl(interface);
+    _address.sin_addr.s_addr = interface;
     
     _sock = socket(domain, service, protocol);
     test_connection(_sock);

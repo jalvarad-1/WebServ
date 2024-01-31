@@ -84,6 +84,7 @@ namespace simpleParser {
                     break;
                 
                 case ROOT:
+                    std::cout << "ROOT" << mCurrentToken->mText << std::endl;
                     ret = server.locations[key_value].setRoot( mCurrentToken->mText );
                     break;
                 
@@ -231,5 +232,9 @@ namespace simpleParser {
         Type returnToken = it->second;
         ++mCurrentToken;
         return returnToken;
+    }
+
+    std::vector<ServerConfig> Parser::getConfigServers() {
+        return _confServers;
     }
 }

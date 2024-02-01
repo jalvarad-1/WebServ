@@ -56,7 +56,7 @@ bool ServerConfig::setHostAndPort(std::string & hostAndPort){
     this->_host = inet_addr(host.c_str());
     pos = 0;
     //review if port is a number
-    if (port.find_first_not_of("0123456789") != std::string::npos && !port.empty())
+    if (port.find_first_not_of("0123456789") != std::string::npos || port.empty())
         return false;
     this->_port = std::atoi(port.c_str());
 

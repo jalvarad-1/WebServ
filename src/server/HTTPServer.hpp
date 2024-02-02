@@ -8,10 +8,13 @@
 #include "ListeningSocket.hpp"
 #include <poll.h>
 
+#define SERVER_BUFFER_SIZE 42
+
 class HTTPServer
 {
     private:
         char _buffer[30000]; // TODO C++11
+		std::string * _requestStr ;
         int _new_socket;
         ListeningSocket * _socket;
         ServerConfig _serverConfig;

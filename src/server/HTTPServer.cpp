@@ -39,11 +39,40 @@ int HTTPServer::acceptConnection()
     return (_new_socket);
 }
 
+// void HTTPServer::readPetition(int socket) {
+//     recv(socket, _buffer, 30000, MSG_DONTWAIT);
+//     std::cout << "Leemos peticion" << std::endl;
+//     std::string pepe(_buffer);
+//     std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+// }
+
 void HTTPServer::readPetition(int socket) {
-    recv(socket, _buffer, 30000, MSG_DONTWAIT);
+	char buffer[SERVER_BUFFER_SIZE];
+	if (_requestStr == NULL)
+		_requestStr = new std::string();
+	// while ( recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT) > 0 ) {
+	// 	buffer[SERVER_BUFFER_SIZE - 1] = '\0';
+	// 	requestStr->append(buffer);
+	// }
+	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+	std::cout << bytes_read << " bytes read" << std::endl;
+	// while ( bytes_read > 0 ) {
+	for (int i = 0; i < 1000; i++) {
+		if (bytes_read > 0) {
+			buffer[bytes_read] = '\0';
+			std::cout << "BUFFER:\n" << std::string(buffer) << "\n\n" << std::endl;
+			_requestStr->append(buffer);
+			std::cout << "resquest :\n" << *_requestStr << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+		}
+		usleep(1000);
+		bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+		std::cout << bytes_read << " bytes read" << std::endl;
+	}
     std::cout << "Leemos peticion" << std::endl;
-    std::string pepe(_buffer);
-    std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+    //std::string pepe(_buffer);
+    std::cout << "resquest :\n" << *_requestStr << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+	delete _requestStr;
+	_requestStr = NULL;
 }
 
 void HTTPServer::handler()
@@ -164,6 +193,7 @@ void HTTPServer::sendResponse(int socket)
         date.c_str(),
         my_response.string_body.c_str()
     );
+	std::cout << "\n\n" << response <<  "\n\n" << std::endl;
     send(socket, response, strlen(response), 0);
     close(socket);
 }

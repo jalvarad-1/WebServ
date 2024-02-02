@@ -22,7 +22,7 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     // start listening
 
     // Funcion para gestionar sockets no bloqueantes
-    fcntl(_sock, F_SETFL, O_NONBLOCK);
+    // fcntl(_sock, F_SETFL, O_NONBLOCK);
     
     _backlog = bklg;
     _listening = listen(_sock, _backlog);

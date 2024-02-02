@@ -4,4 +4,6 @@ YoupiBanane
 ubuntu_cgi_tester
 ubuntu_tester
 tester
+cgi_tester
 requirements.txt
+log.txt

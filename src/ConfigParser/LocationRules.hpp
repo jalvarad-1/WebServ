@@ -31,7 +31,7 @@ public:
     std::map<int, std::string>  getErrorPages() const;
     std::string getRoot() const;
     int getMaxBodySize() const;
-    std::list<std::string> getAllowedMethods() const;
+    std::list<std::string> & getAllowedMethods();
     bool isAuto_index() const;
     std::string getIndex() const;
     std::string getCgiPass() const;

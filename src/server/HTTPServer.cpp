@@ -57,12 +57,14 @@ void HTTPServer::readPetition(int socket) {
 	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
 	std::cout << bytes_read << " bytes read" << std::endl;
 	// while ( bytes_read > 0 ) {
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 100; i++) {
 		if (bytes_read > 0) {
 			buffer[bytes_read] = '\0';
 			std::cout << "BUFFER:\n" << std::string(buffer) << "\n\n" << std::endl;
 			_requestStr->append(buffer);
 			std::cout << "resquest :\n" << *_requestStr << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+            if ( _requestStr->size() > 3 && _requestStr->find("\r\n\r\n", _requestStr->size() - 4) != std::string::npos )
+                std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
 		}
 		usleep(1000);
 		bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);

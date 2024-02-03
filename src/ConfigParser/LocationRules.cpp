@@ -39,7 +39,7 @@ int LocationRules::getMaxBodySize() const
     return this->_maxBodySize;
 }
 
-std::list<std::string> LocationRules::getAllowedMethods() const
+std::list<std::string> & LocationRules::getAllowedMethods()
 {
     return this->_allowedMethods;
 }

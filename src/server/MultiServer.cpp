@@ -8,6 +8,7 @@ MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
 
         struct fd_status port_status;
         port_status.server = new HTTPServer(AF_INET, SOCK_STREAM, interface, port, INADDR_ANY, 0, *it);
+		waifu.push_back(port_status.server);
         struct pollfd pfd;
         memset(&pfd, 0, sizeof(pfd));
         pfd.fd = port_status.server->get_socket()->get_sock();  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
@@ -30,22 +31,50 @@ MultiServer::~MultiServer() {
 
 void MultiServer::run() {
     int socket;
+	int listeningFds = poll_fds.size();
+
+	for ( int i = waifu.size() - 1; i >= 0; i-- ) {
+		std::cerr << i << ": " << waifu[i] << std::endl;
+	}
+
     while (true) {
         int ret = poll(poll_fds.data(), poll_fds.size(), -1);
         if (ret < 0) {
             perror("poll failed");
             exit(EXIT_FAILURE);
         }
-        for (size_t i = 0; i < poll_fds.size(); i++) {
+        for (int i = static_cast<int>(poll_fds.size()) - 1; i >= 0 ; i--) {
+			std::cerr << i << std::endl;
             if (poll_fds[i].revents & POLLIN) {
                 // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
                 // if (status[i].port == true) {
-                socket = status[i].server->acceptConnection();
-                status[i].server->readPetition(socket);
-                status[i].server->sendResponse(socket);
+				if ( i < listeningFds ) {
+					std::cerr << i << ": " << waifu[i] << std::endl;
+					socket = waifu[i]->acceptConnection();
+					std::cerr << "socket: " << socket << std::endl;
+					std::cerr << "poll_fds[i].fd: " << poll_fds[i].fd << std::endl;
+					struct pollfd pfd;
+					memset(&pfd, 0, sizeof(pfd));
+					pfd.fd = socket;  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
+					pfd.events = POLLIN;
+					pfd.revents = 0;
+					poll_fds.push_back(pfd);
+					waifu.push_back(waifu[i]);
+					status.push_back(status[i]);
+					// status[i].server->addActiveFd(socket);
+				} else {
+					std::cerr << i << ": " << waifu[i] << std::endl;
+					if ( !waifu[i]->readFromFd(poll_fds[i].fd) ) {
+						poll_fds.erase(poll_fds.begin() + i);
+						waifu.erase(waifu.begin() + i);
+					}
+				}
+                // status[i].server->readPetition(socket);
+                // status[i].server->sendResponse(socket);
                 // }
-            }
+            }		
         }
+		std::cerr << "LOOP MADE" << std::endl;
     }
 }
 

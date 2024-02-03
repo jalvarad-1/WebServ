@@ -22,6 +22,7 @@ class MultiServer
         // std::vector<HTTPServer*> servers;
         std::vector<struct pollfd> poll_fds;
         std::vector<struct fd_status> status;
+		std::vector<HTTPServer *> waifu;
 
     public:
         /// TODO to decide type of variable to pass to Constructor

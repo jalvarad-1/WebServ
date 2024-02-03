@@ -10,7 +10,8 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
             _serverConfig(serverConfig)
 {
     _socket = new ListeningSocket(domain, service, protocol, port, interface, bklg);
-
+	// _requestStrs = std::map<int, std::string *>();
+	std::cerr << "size of map: " << _requestStrs.size() << std::endl;
     for (int i = 0; i < 30000; i++) {
         _buffer[i] = 0;
     }
@@ -46,36 +47,107 @@ int HTTPServer::acceptConnection()
 //     std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
 // }
 
-void HTTPServer::readPetition(int socket) {
-	char buffer[SERVER_BUFFER_SIZE];
-	if (_requestStr == NULL)
-		_requestStr = new std::string();
-	// while ( recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT) > 0 ) {
-	// 	buffer[SERVER_BUFFER_SIZE - 1] = '\0';
-	// 	requestStr->append(buffer);
-	// }
-	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
-	std::cout << bytes_read << " bytes read" << std::endl;
-	// while ( bytes_read > 0 ) {
-	for (int i = 0; i < 100; i++) {
-		if (bytes_read > 0) {
-			buffer[bytes_read] = '\0';
-			std::cout << "BUFFER:\n" << std::string(buffer) << "\n\n" << std::endl;
-			_requestStr->append(buffer);
-			std::cout << "resquest :\n" << *_requestStr << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-            if ( _requestStr->size() > 3 && _requestStr->find("\r\n\r\n", _requestStr->size() - 4) != std::string::npos )
-                std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
-		}
-		usleep(1000);
-		bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
-		std::cout << bytes_read << " bytes read" << std::endl;
-	}
-    std::cout << "Leemos peticion" << std::endl;
-    //std::string pepe(_buffer);
-    std::cout << "resquest :\n" << *_requestStr << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-	delete _requestStr;
-	_requestStr = NULL;
+void HTTPServer::addActiveFd( int newFd ) {
+	this->_activeFds.push_back(newFd);
 }
+
+// void HTTPServer::readFromFds( void ) {
+// 	char buffer[SERVER_BUFFER_SIZE];
+// 	ssize_t bytes_read;
+// 	std::string * requestStr;
+// 	for ( std::list<int>::iterator iter = _activeFds.begin(); iter != _activeFds.end(); iter++ ) {
+// 		bytes_read = recv(*iter, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+// 		std::cerr << bytes_read << " bytes read from socket " << *iter;
+// 		switch (bytes_read) {
+// 			case -1:
+// 				continue ;
+// 			case 0:
+// 				if ( _requestStrs[*iter] != NULL )
+// 					delete _requestStrs[*iter] ;
+// 				_activeFds.remove(*iter) ;
+// 				break ;
+// 			default:
+// 				buffer[bytes_read] = '\0';
+// 				std::cout << "BUFFER:\n" << std::string(buffer) << "\n\n" << std::endl;
+// 				requestStr = _requestStrs[*iter];
+// 				if ( requestStr == NULL ) {
+// 					requestStr = new std::string();
+// 					_requestStrs[*iter] = requestStr ;
+// 				}
+// 				requestStr->append(buffer);
+// 				std::cout << "resquest :\n<<" << *requestStr << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+// 				if ( requestStr->size() > 3 && requestStr->find("\r\n\r\n", requestStr->size() - 4) != std::string::npos ) {
+// 					std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
+// 					std::cout << "Leemos peticion" << std::endl;
+// 					std::cout << "resquest :\n<<" << *requestStr << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+// 					delete requestStr;
+// 					_activeFds.remove(*iter) ;
+// 					requestStr = NULL;
+// 				}
+// 		}
+// 	}
+// }
+
+bool HTTPServer::readFromFd( int socket ) {
+	char buffer[SERVER_BUFFER_SIZE] ;
+	ssize_t bytes_read ;
+	bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+	std::cerr << bytes_read << " bytes read from socket " << socket << std::endl;
+	switch (bytes_read) {
+		case -1:
+			return true ;
+		case 0:
+			_requestStrs.erase(socket);
+			return false ;
+			break ;
+		default:
+			buffer[bytes_read] = '\0';
+			_requestStrs[socket].append(buffer);
+			std::cout << "resquest :\n<<" << _requestStrs[socket] << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+			if ( _requestStrs[socket].size() > 3 && _requestStrs[socket].find("\r\n\r\n", _requestStrs[socket].size() - 4) != std::string::npos ) {
+				std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
+				std::cout << "Leemos peticion" << std::endl;
+				std::cout << "resquest :\n<<" << _requestStrs[socket] << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+				sendResponse(socket, _requestStrs[socket]);
+				std::cerr << "1" << std::endl;
+				_requestStrs.erase(socket);
+				std::cerr << "2" << std::endl;
+				return false ;
+			}
+			return true ;
+	}
+}
+
+// void HTTPServer::readPetition(int socket) {
+// 	char buffer[SERVER_BUFFER_SIZE];
+// 	if (_requestStr == NULL)
+// 		_requestStr = new std::string();
+// 	// while ( recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT) > 0 ) {
+// 	// 	buffer[SERVER_BUFFER_SIZE - 1] = '\0';
+// 	// 	requestStr->append(buffer);
+// 	// }
+// 	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+// 	std::cout << bytes_read << " bytes read" << std::endl;
+// 	// while ( bytes_read > 0 ) {
+// 	// for (int i = 0; i < 100; i++) {
+// 		if (bytes_read > 0) {
+// 			buffer[bytes_read] = '\0';
+// 			std::cout << "BUFFER:\n" << std::string(buffer) << "\n\n" << std::endl;
+// 			_requestStr->append(buffer);
+// 			std::cout << "resquest :\n<<" << *_requestStr << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+//             if ( _requestStr->size() > 3 && _requestStr->find("\r\n\r\n", _requestStr->size() - 4) != std::string::npos ) {
+//                 std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
+// 				std::cout << "Leemos peticion" << std::endl;
+// 				std::cout << "resquest :\n<<" << *_requestStr << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+// 				delete _requestStr;
+// 				_requestStr = NULL;
+// 			}
+// 		}
+// 		// usleep(1000);
+// 		// bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+// 		// std::cout << bytes_read << " bytes read" << std::endl;
+// 	// }
+// }
 
 void HTTPServer::handler()
 {
@@ -153,14 +225,14 @@ std::string getContentType(std::string file_path) {
     else {
         content_type = "text/plain";
     }
-    std::cout << "getContentType" << std::endl;
+    std::cout << "getContentType: " << content_type << std::endl;
     return (content_type);
 }
 
-void HTTPServer::sendResponse(int socket)
+void HTTPServer::sendResponse(int socket, std::string & requestStr)
 {   
     // Esta clase se encarga de parsear la petición.
-    HTTPRequest request(_buffer);
+    HTTPRequest request(requestStr);
     std::cout << "Uri: " << request.getURI() << std::endl;
     // En esta clase almacenamos todos los códigos de error y su mensaje.
     ResponseCode response_codes;
@@ -179,6 +251,8 @@ void HTTPServer::sendResponse(int socket)
 
     std::string date = getDate();
     std::cout << my_response.string_body << std::endl;
+	std::cerr << date.c_str() << std::endl;
+	std::cerr << "AAAAAAAAH" << std::endl;
     std::cout << "sendResponse" << std::endl;
     sprintf(response,
         "HTTP/1.1 %d %s\r\n"

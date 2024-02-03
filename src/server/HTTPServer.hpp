@@ -8,16 +8,18 @@
 #include "ListeningSocket.hpp"
 #include <poll.h>
 
-#define SERVER_BUFFER_SIZE 42
+#define SERVER_BUFFER_SIZE 4200
 
 class HTTPServer
 {
     private:
         char _buffer[30000]; // TODO C++11
-		std::string * _requestStr ;
         int _new_socket;
         ListeningSocket * _socket;
         ServerConfig _serverConfig;
+		
+		std::list<int> _activeFds;
+		std::map<int, std::string> _requestStrs ;
 
     public:
         HTTPServer(int domain, int service, int protocol,
@@ -27,9 +29,13 @@ class HTTPServer
         int acceptConnection();
         void handler();
         void readPetition(int socket);
-        void sendResponse(int socket);
+        void sendResponse(int socket, std::string & requesStr);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();
+
+		void addActiveFd( int newFd ) ;
+		void readFromFds( void ) ;
+		bool readFromFd( int socket ) ;
 };
 #endif

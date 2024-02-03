@@ -1,6 +1,6 @@
 CXX := g++
 NAME := webserv
-CXXFLAGS := -Wall -Wextra -std=c++98
+CXXFLAGS := -Wall -Wextra -std=c++98 -g3
 SRCS =	src/main.cpp\
 		src/server/HTTPServer.cpp\
 		src/server/ListeningSocket.cpp\

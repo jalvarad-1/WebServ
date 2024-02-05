@@ -10,7 +10,6 @@ ResponseCode::ResponseCode() {
 }
 
 std::string ResponseCode::get_code_string(int code) {
-    std::cout << "get_code_string" << std::endl;
     return (this->_codes[code]);
 }
 

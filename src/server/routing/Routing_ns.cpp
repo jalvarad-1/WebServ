@@ -111,12 +111,6 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     std::string file_path;
     std::string body;
     bool allowed_method = isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods());
-	std::cout << "method: " << httpRequest.getMethod() << std::endl;
-	std::cout << "alowedMethods: "; 
-	for ( std::list<std::string>::iterator iter = locationRule.getAllowedMethods().begin(); iter != locationRule.getAllowedMethods().end(); iter++ ) {
-		std::cout << *iter << " ";
-	}
-	std::cout << std::endl;
     Response response;
     
     if (allowed_method)

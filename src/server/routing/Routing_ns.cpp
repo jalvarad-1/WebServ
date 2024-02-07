@@ -107,7 +107,12 @@ Response Routing::processDirPath(std::string root, std::string resource_path, Lo
 
 bool    Routing::isCorrectCGIExtension(const std::string & file_path, const std::string & extension)
 {
-    return file_path.substr(file_path.find_last_of('.')) == extension; 
+    std::size_t lastDotPos = file_path.find_last_of('.');
+    if (lastDotPos == std::string::npos)
+        return false;
+    
+    std::string fileExtension = file_path.substr(lastDotPos);
+    return fileExtension == extension;
 }
 
 void    Routing::errorResponse(Response & response, LocationRules & locationRule)
@@ -136,23 +141,19 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     if (isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods()))
     {
         file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
-        if (!locationRule.getCgiPass().empty() && \
-            isCorrectCGIExtension(file_path, locationRule.getCgiExtension()))
-            std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
-        
-        else
+        switch(typeOfResource(file_path))
         {
-            switch(typeOfResource(file_path))
-            {
-                case ISDIR:
-                    response = processDirPath(locationRule.getRoot(), file_path, locationRule);//process directory
-                    break;
-                case ISFILE:
-                    response = processFilePath(file_path);//process file
-                    break;
-                default:
-                    response.response_code = 404;
-            }
+            case ISDIR:
+                response = processDirPath(locationRule.getRoot(), file_path, locationRule);//process directory
+                break;
+            case ISFILE:
+                if (!locationRule.getCgiPass().empty() && \
+                    isCorrectCGIExtension(file_path, locationRule.getCgiExtension()))
+                    std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
+                response = processFilePath(file_path);//process file 
+                break;
+            default:
+                response.response_code = 404;
         }
     }
     else

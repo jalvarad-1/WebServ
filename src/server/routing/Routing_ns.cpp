@@ -76,21 +76,22 @@ Response Routing::processFilePath(std::string resource_path)
 Response Routing::processDirPath(std::string root, std::string resource_path, LocationRules locationRule)
 {
     Response response;
-    std::string default_file = root + "/"+locationRule.getIndex();
+    std::string default_file;
+    if (!locationRule.getIndex().empty())
+        default_file = resource_path + "/" + locationRule.getIndex();
     std::string buffer;
 
-    std::cout << default_file << std::endl;
+    std::cout << "processDirPath: " << default_file << std::endl;
     if (!default_file.empty() && !access(default_file.c_str(), R_OK))//try to open a default file
         return processFilePath(default_file);
-    else if (default_file.empty() && locationRule.isAuto_index()) // try  to open dir
+    else if (locationRule.isAuto_index()) // try  to open dir
     {
         DIR * dir;
         struct dirent *entry;
         dir = opendir(resource_path.c_str());
         if(dir != NULL)
         {
-            while ((entry = readdir(dir)) != NULL)
-            {
+            while ((entry = readdir(dir)) != NULL) {
                 response.string_body += entry->d_name; // Agrega el nombre del archivo/directorio a la lista
                 response.string_body += "\n"; // Agrega un salto de línea después de cada nombre
             }
@@ -101,7 +102,7 @@ Response Routing::processDirPath(std::string root, std::string resource_path, Lo
         }
     }
     response.file_path = "";
-    response.response_code = 403;
+    response.response_code = 404;
     return response;
 }
 
@@ -141,6 +142,7 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     if (isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods()))
     {
         file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
+        std::cout << "file_path: " << typeOfResource(file_path) << file_path << std::endl;
         switch(typeOfResource(file_path))
         {
             case ISDIR:
@@ -148,9 +150,13 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
                 break;
             case ISFILE:
                 if (!locationRule.getCgiPass().empty() && \
-                    isCorrectCGIExtension(file_path, locationRule.getCgiExtension()))
+                    isCorrectCGIExtension(file_path, locationRule.getCgiExtension())) {
                     std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
-                response = processFilePath(file_path);//process file 
+                    response = processFilePath(file_path);
+                }
+                else {
+                    response = processFilePath(file_path);//process file
+                }          
                 break;
             default:
                 response.response_code = 404;

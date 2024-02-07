@@ -80,6 +80,9 @@ bool LocationRules::setRoot(std::string root)
 {
     if (_root != "")
         return false;
+    if (!root.empty() && root[root.size() - 1] == '/') {
+        root.erase(root.size() - 1);
+    }
     this->_root = root;
     return true;
 }

@@ -30,6 +30,8 @@ namespace Routing
 
     Response        processDirPath(std::string root, std::string file_path, LocationRules locationRule);//3
     Response        processFilePath(std::string resource_path);//3
+    bool            isCorrectCGIExtension(const std::string & file_path, const std::string & extension);//3
+    void            errorResponse(Response & response, LocationRules & locationRule);
 }
 /*
     

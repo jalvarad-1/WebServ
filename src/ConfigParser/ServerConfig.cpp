@@ -86,5 +86,6 @@ void ServerConfig::printServerConfig() const {
     }
 
 bool ServerConfig::isEmptyServer() const {
+    std::cout << "Empty server." << std::endl;
     return _empty_server;
 }

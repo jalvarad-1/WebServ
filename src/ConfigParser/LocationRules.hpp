@@ -34,6 +34,7 @@ public:
     std::list<std::string> & getAllowedMethods();
     bool isAuto_index() const;
     std::string getIndex() const;
+    std::string getCgiExtension() const;
     std::string getCgiPass() const;
     std::string getKeyValue() const;
 

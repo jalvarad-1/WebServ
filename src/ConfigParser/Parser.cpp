@@ -84,7 +84,6 @@ namespace simpleParser {
                     break;
                 
                 case ROOT:
-                    std::cout << "ROOT" << mCurrentToken->mText << std::endl;
                     ret = server.locations[key_value].setRoot( mCurrentToken->mText );
                     break;
                 
@@ -176,11 +175,13 @@ namespace simpleParser {
         
         while (mCurrentToken != mEndToken) {
             if (!expectServerDefinition()) {
-                std::cerr << "Unknown identifier: " << mCurrentToken->mText;
-                std::cerr << " line: " << 1 + mCurrentToken->mLineNumber << "." << std:: endl;
-                exit(1); //TODO Throw exception
+                throw std::runtime_error("Unknown identifier " + mCurrentToken->mText + \
+                                        " line: " + \
+                                        std::to_string(1 + mCurrentToken->mLineNumber) + ".");
             }
         }
+        if (_confServers.empty())
+            throw std::runtime_error("No server definition found");
         printServers();
     }
 

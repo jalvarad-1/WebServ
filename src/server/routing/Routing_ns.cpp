@@ -64,6 +64,7 @@ Response Routing::processFilePath(std::string resource_path)
 		inFileStream.seekg(0, std::ios::beg);
 		inFileStream.read(&buffer[0], buffer.size());
         inFileStream.close();
+        response.file_path = resource_path;
         response.response_code = 200;
         response.string_body = buffer;
         return response;
@@ -93,54 +94,71 @@ Response Routing::processDirPath(std::string root, std::string resource_path, Lo
                 response.string_body += entry->d_name; // Agrega el nombre del archivo/directorio a la lista
                 response.string_body += "\n"; // Agrega un salto de línea después de cada nombre
             }
+            closedir(dir);
+            response.file_path = resource_path;
+            response.response_code = 200;
+            return response;
         }
-        closedir(dir);
-        response.file_path = resource_path;
-        response.response_code = 200;
-        return response;
-        //listar como en google?
     }
     response.file_path = "";
     response.response_code = 403;
     return response;
 }
 
+bool    Routing::isCorrectCGIExtension(const std::string & file_path, const std::string & extension)
+{
+    std::size_t lastDotPos = file_path.find_last_of('.');
+    if (lastDotPos == std::string::npos)
+        return false;
+    
+    std::string fileExtension = file_path.substr(lastDotPos);
+    return fileExtension == extension;
+}
+
+void    Routing::errorResponse(Response & response, LocationRules & locationRule)
+{
+    if (response.response_code > 399) // in RFC 7231, 4xx are client errors
+    {
+        int response_code = response.response_code;//auxiliary variable to save the response code
+        std::map<int, std::string> error_pages = locationRule.getErrorPages();
+        std::map<int, std::string>::iterator it = error_pages.find(response.response_code);
+        if (it != error_pages.end()) {
+            response.file_path = locationRule.getRoot() + it->second;
+            response = processFilePath(response.file_path);
+            response.response_code = response_code;
+        }
+        else
+            response.file_path = "";
+    }
+}
 
 Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule)
 {
     std::string file_path;
     std::string body;
-    bool allowed_method = isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods());
     Response response;
     
-    if (allowed_method)
+    if (isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods()))
     {
         file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
-        if (!locationRule.getCgiPass().empty())
-            std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
-        else
+        switch(typeOfResource(file_path))
         {
-            switch(typeOfResource(file_path))
-            {
-                case ISDIR:
-                    response = processDirPath(locationRule.getRoot(), file_path, locationRule);//process directory
-                    break;
-                case ISFILE:
-                    response = processFilePath(file_path);//process file
-                    break;
-                default:
-                    response.response_code = 404;
-            }
+            case ISDIR:
+                response = processDirPath(locationRule.getRoot(), file_path, locationRule);//process directory
+                break;
+            case ISFILE:
+                if (!locationRule.getCgiPass().empty() && \
+                    isCorrectCGIExtension(file_path, locationRule.getCgiExtension()))
+                    std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
+                response = processFilePath(file_path);//process file 
+                break;
+            default:
+                response.response_code = 404;
         }
     }
     else
         response.response_code = 405;
-    //review if its an error and if response.path is empty then its an error, return corresponding error page
-    //
-
-
-    //revisar ejecución cgi, ya que es posible que para cumplir el subject sea mejor algo como cgipass [extension] [archivo cgi]
-    //revisar el tester de la intra
+    errorResponse(response, locationRule);
     return response;
 }
 

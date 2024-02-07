@@ -64,6 +64,11 @@ std::string LocationRules::getCgiPass() const
     return this->_cgi_pass;
 }
 
+std::string LocationRules::getCgiExtension() const
+{
+    return this->_cgi_extension;
+}
+
 LocationRules::~LocationRules() {}
 
 void LocationRules::setErrorPage(int error_code, std::string error_page)

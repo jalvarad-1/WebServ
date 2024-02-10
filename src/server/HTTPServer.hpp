@@ -10,6 +10,13 @@
 
 #define SERVER_BUFFER_SIZE 4200
 
+struct BufferRequest {
+	BufferRequest() ;
+    std::string     buffer_str;
+    int			content_length;
+    HTTPRequest		request;
+} ;
+
 class HTTPServer
 {
     private:
@@ -18,8 +25,7 @@ class HTTPServer
         ListeningSocket * _socket;
         ServerConfig _serverConfig;
 		
-		std::list<int> _activeFds;
-		std::map<int, std::string> _requestStrs ;
+		std::map<int, BufferRequest> _bufferedRequests ;
 
     public:
         HTTPServer(int domain, int service, int protocol,
@@ -29,13 +35,12 @@ class HTTPServer
         int acceptConnection();
         void handler();
         void readPetition(int socket);
-        void sendResponse(int socket, std::string & requesStr);
+        void sendResponse(int socket, HTTPRequest & request);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();
 
-		void addActiveFd( int newFd ) ;
-		void readFromFds( void ) ;
+		bool readFromBuffer( BufferRequest & bufferRequest, char * buffer ) ;
 		bool readFromFd( int socket ) ;
 };
 #endif

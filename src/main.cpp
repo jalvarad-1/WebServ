@@ -48,16 +48,18 @@ int main(int argc, char **argv)
 //     std::map<std::string, std::string> env;
 //     env["REQUEST_METHOD"] = "GET";
 //     env["SERVER_PROTOCOL"] = "HTTP/1.1";
-//     env["PATH_INFO"] = " ";
+//     env["PATH_INFO"] = "asdasdasdasdasd";
+//     env["filename"] = "archivo.txt";
 
 //     // Este va a ser el vector con el que le vamos a pasar los argumentos.
 //     std::vector<std::string> args;
-//     args.push_back("/home/pavon/WebServ/cgi_bin/cgi_python");
+//     args.push_back("cgi_bin/cgi_python");
+//     args.push_back("cgi_bin/script.py");
 
 //     CGI cgi(cgi_path, file_path);
 //     cgi.set_env(env);
 //     cgi.set_args(args);
-//     ret = cgi.run_CGI();
+//     ret = cgi.run_CGI("print('Hello World!!')");
 
 //     std::cout << "Header Status: " << ret.headers["Status"] << std::endl;
 

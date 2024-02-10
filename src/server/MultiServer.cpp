@@ -45,7 +45,7 @@ void MultiServer::run() {
                 // if (status[i].port == true) {
 				if ( i < listeningFds ) {
 					socket = waifu[i]->acceptConnection();
-                    status[i].server->readPetition(socket);
+                    //status[i].server->readPetition(socket);
 					struct pollfd pfd;
 					memset(&pfd, 0, sizeof(pfd));
 					pfd.fd = socket;  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()

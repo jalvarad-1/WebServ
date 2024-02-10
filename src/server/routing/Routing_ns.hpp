@@ -13,6 +13,7 @@
 
 #define ISDIR 1
 #define ISFILE 2
+#define ISCGI 3
 
 struct Response {
     std::map<std::string, std::string> headers;
@@ -28,7 +29,7 @@ namespace Routing
     Response        determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule);//2
     bool            isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods);//3
     std::string     removeKeyValue(std::string toRemove, std::string str);//3
-    short int       typeOfResource(const std::string& path);//3
+    short int       typeOfResource(const std::string& path, LocationRules locationRule);//3
 
     Response        processDirPath(std::string file_path, LocationRules locationRule);//3
     Response        processFilePath(std::string resource_path);//3

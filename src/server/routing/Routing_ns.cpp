@@ -37,9 +37,14 @@ std::string Routing::removeKeyValue(std::string toRemove, std::string str)
     return str.substr(pos + toRemove.length());
 }
 
-short int Routing::typeOfResource(const std::string& path)
+short int Routing::typeOfResource(const std::string& path, LocationRules locationRule)
 {
     struct stat statbuf;
+
+    if (!locationRule.getCgiPass().empty() && \
+                    isCorrectCGIExtension(path, locationRule.getCgiExtension())){
+        return ISCGI;
+    }
     if (stat(path.c_str(), &statbuf) != 0)
         return false;
     else if (S_ISREG(statbuf.st_mode))
@@ -165,23 +170,17 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     if (isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods()))
     {
         file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
-        std::cout << "file_path: " << typeOfResource(file_path) << file_path << std::endl;
-        switch(typeOfResource(file_path))
+        //std::cout << "file_path: " << typeOfResource(file_path) << file_path << std::endl;
+        switch(typeOfResource(file_path, locationRule))
         {
             case ISDIR:
                 response = processDirPath(file_path, locationRule);//process directory
                 break;
+            case ISCGI:
+                response = processCGI(locationRule.getCgiPass(), file_path , httpRequest);
+                break;
             case ISFILE:
-                if (!locationRule.getCgiPass().empty() && \
-                    isCorrectCGIExtension(file_path, locationRule.getCgiExtension())) {
-                    
-                    std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
-                    //response = processFilePath(file_path);//process file, uncomment this line if yo want to pass more tests
-                    response = processCGI(locationRule.getCgiPass(), file_path, httpRequest);
-                }
-                else {
-                    response = processFilePath(file_path);//process file
-                }          
+                    response = processFilePath(file_path);//process file        
                 break;
             default:
                 response.response_code = 404;

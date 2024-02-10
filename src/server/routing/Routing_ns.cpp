@@ -144,7 +144,7 @@ Response    Routing::processCGI(std::string file_path, std::string binary_path, 
 
     std::vector<std::string> args;
     
-    CGI cgi(file_path, binary_path);
+    CGI cgi(file_path);
     args.push_back(binary_path);
 
     cgi.set_env(env);

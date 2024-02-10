@@ -107,14 +107,7 @@ CGI_Return CGI::run_CGI(std::string request_body) {
     ret.body = "OK";
     ret.headers["Content-Type"] = "text/html";
 
-    int fileDescriptor = openFile(_file_path);
-    if (fileDescriptor == -1) {
-        ret.code = 500;
-        ret.body = "Error 500: Could not open file " + _file_path;
-    }
-    else {
-        this->execute_binary(request_body);
-    }
+    this->execute_binary(request_body);
     return ret;
 }
 
@@ -143,11 +136,11 @@ void CGI::set_args(std::vector<std::string> vec) {
     _argv[i] = NULL;
 }
 
-CGI::CGI(std::string cgi_path, std::string file_path) {
+CGI::CGI(std::string cgi_path) {
     _cgi_path = new char[cgi_path.size() + 1];
     strcpy(_cgi_path, cgi_path.c_str());
     _cgi_path[cgi_path.size()] = '\0';
-    _file_path = file_path;
+    // _file_path = file_path;
 }
 
 CGI::~CGI() {

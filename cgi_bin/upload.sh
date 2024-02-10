@@ -4,7 +4,7 @@
 if [ $# -eq 0 ]; then
   echo -e "Status: 400 Bad request"
   echo -e "\r"
-  echo -e "File name not valid"
+  echo -e "File content not valid"
   exit 1
 fi
 
@@ -12,7 +12,7 @@ fi
 file=$1
 
 # Imprimir el mensaje utilizando el argumento
-echo $file > ../uploaded_files/$filename;
+echo $file > uploaded_files/$filename;
 
 echo -e "Status: 201 Created"
 echo -e "Filename: $filename"

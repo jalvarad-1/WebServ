@@ -24,7 +24,6 @@ private:
     char **_argv;
     CGI_Return ret;
     char* _cgi_path;
-    std::string _file_path;
     int execute_binary(std::string request_body);
     int set_error(int code, std::string body);
     int child_process(int (&pipefd)[2], std::string request_body);
@@ -32,7 +31,7 @@ private:
     void parse_output(std::string output);
 
 public:
-    CGI(std::string cgi_path, std::string file_path);
+    CGI(std::string cgi_path);
     ~CGI();
     CGI_Return run_CGI(std::string request_body);
     void set_env(std::map<std::string, std::string> map);

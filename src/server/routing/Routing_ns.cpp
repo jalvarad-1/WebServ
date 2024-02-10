@@ -177,7 +177,7 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
                     
                     std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
                     //response = processFilePath(file_path);//process file, uncomment this line if yo want to pass more tests
-                    response = processCGI(file_path, locationRule.getCgiPass(), httpRequest);
+                    response = processCGI(locationRule.getCgiPass(), file_path, httpRequest);
                 }
                 else {
                     response = processFilePath(file_path);//process file

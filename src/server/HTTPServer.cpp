@@ -5,13 +5,16 @@
 #include <ctime>
 #include "routing/Routing_ns.hpp"
 
+BufferRequest::BufferRequest( void ) {
+	content_length = -1;
+}
+
 HTTPServer::HTTPServer(int domain, int service, int protocol,
             int port, u_long interface, int bklg, const ServerConfig & serverConfig):
             _serverConfig(serverConfig)
 {
     _socket = new ListeningSocket(domain, service, protocol, port, interface, bklg);
-	// _requestStrs = std::map<int, std::string *>();
-    for (int i = 0; i < 30000; i++) {
+	for (int i = 0; i < 30000; i++) {
         _buffer[i] = 0;
     }
 }
@@ -39,53 +42,28 @@ int HTTPServer::acceptConnection()
     return (_new_socket);
 }
 
-// void HTTPServer::readPetition(int socket) {
-//     recv(socket, _buffer, 30000, MSG_DONTWAIT);
-//     std::cout << "Leemos peticion" << std::endl;
-//     std::string pepe(_buffer);
-//     std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-// }
-
-void HTTPServer::addActiveFd( int newFd ) {
-	this->_activeFds.push_back(newFd);
+bool HTTPServer::readFromBuffer( BufferRequest & bufferRequest, char * buffer ) {
+	bufferRequest.buffer_str.append(buffer);
+	if (bufferRequest.content_length < 0) {
+		size_t rnrn = bufferRequest.buffer_str.find("\r\n\r\n");
+		if ( rnrn == std::string::npos )
+			return true ;
+		if ( bufferRequest.request.getMethod().empty() ) {
+			bufferRequest.request = HTTPRequest(bufferRequest.buffer_str.substr(0, rnrn + 4));
+			std::cout << "\n---Request---\n" << bufferRequest.buffer_str.substr(0, rnrn + 4) << "---" << std::endl;
+			bufferRequest.content_length = bufferRequest.request.returnContentLength();
+			if ( bufferRequest.content_length < 0 )	
+				return false ;
+			bufferRequest.buffer_str.erase(bufferRequest.buffer_str.begin() + rnrn + 4);
+		}
+	}
+	if ( static_cast<int>(bufferRequest.buffer_str.size()) >= bufferRequest.content_length ) {
+		bufferRequest.request._body = bufferRequest.buffer_str;
+		std::cout << "\n---Body---\n" << bufferRequest.buffer_str << "---" << std::endl;
+		return false ;
+	}
+	return true ;
 }
-
-// void HTTPServer::readFromFds( void ) {
-// 	char buffer[SERVER_BUFFER_SIZE];
-// 	ssize_t bytes_read;
-// 	std::string * requestStr;
-// 	for ( std::list<int>::iterator iter = _activeFds.begin(); iter != _activeFds.end(); iter++ ) {
-// 		bytes_read = recv(*iter, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
-// 		std::cerr << bytes_read << " bytes read from socket " << *iter;
-// 		switch (bytes_read) {
-// 			case -1:
-// 				continue ;
-// 			case 0:
-// 				if ( _requestStrs[*iter] != NULL )
-// 					delete _requestStrs[*iter] ;
-// 				_activeFds.remove(*iter) ;
-// 				break ;
-// 			default:
-// 				buffer[bytes_read] = '\0';
-// 				std::cout << "BUFFER:\n" << std::string(buffer) << "\n\n" << std::endl;
-// 				requestStr = _requestStrs[*iter];
-// 				if ( requestStr == NULL ) {
-// 					requestStr = new std::string();
-// 					_requestStrs[*iter] = requestStr ;
-// 				}
-// 				requestStr->append(buffer);
-// 				std::cout << "resquest :\n<<" << *requestStr << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-// 				if ( requestStr->size() > 3 && requestStr->find("\r\n\r\n", requestStr->size() - 4) != std::string::npos ) {
-// 					std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
-// 					std::cout << "Leemos peticion" << std::endl;
-// 					std::cout << "resquest :\n<<" << *requestStr << ">>" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-// 					delete requestStr;
-// 					_activeFds.remove(*iter) ;
-// 					requestStr = NULL;
-// 				}
-// 		}
-// 	}
-// }
 
 bool HTTPServer::readFromFd( int socket ) {
 	char buffer[SERVER_BUFFER_SIZE] ;
@@ -96,21 +74,16 @@ bool HTTPServer::readFromFd( int socket ) {
 		case -1:
 			return true ;
 		case 0:
-			_requestStrs.erase(socket);
+			_bufferedRequests.erase(socket);
 			return false ;
 			break ;
 		default:
 			buffer[bytes_read] = '\0';
-			_requestStrs[socket].append(buffer);
-			if ( _requestStrs[socket].size() > 3 && _requestStrs[socket].find("\r\n\r\n", _requestStrs[socket].size() - 4) != std::string::npos ) {
-				// std::cout << "YAY! I FOUND THE END! (￣▽￣)" << std::endl;
-				// std::cout << "Leemos peticion" << std::endl;
-				std::cout << "\n---REQUEST---\n" << _requestStrs[socket] << "---" << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-				sendResponse(socket, _requestStrs[socket]);
-				_requestStrs.erase(socket);
-				return false ;
-			}
-			return true ;
+			if ( readFromBuffer(_bufferedRequests[socket], buffer) )
+				return true ;
+			sendResponse(socket, _bufferedRequests[socket].request);
+			_bufferedRequests.erase(socket);
+			return false ;
 	}
 }
 
@@ -136,7 +109,7 @@ void HTTPServer::handler()
     for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
         std::cout << it->first << ": " << it->second << std::endl;
 
-    if (request.methodAcceptsBody(request.getMethod()))
+    if (request.methodAcceptsBody())
         std::cout << "Body: " << request.getBody() << std::endl;
 
     return ;
@@ -194,10 +167,10 @@ std::string getContentType(std::string file_path) {
     return (content_type);
 }
 
-void HTTPServer::sendResponse(int socket, std::string & requestStr)
+void HTTPServer::sendResponse(int socket, HTTPRequest & request)
 {   
     // Esta clase se encarga de parsear la petición.
-    HTTPRequest request(requestStr);
+    // HTTPRequest request(requestStr);
     std::cout << "Uri: " << request.getURI() << std::endl;
     // En esta clase almacenamos todos los códigos de error y su mensaje.
     ResponseCode response_codes;
@@ -214,11 +187,28 @@ void HTTPServer::sendResponse(int socket, std::string & requestStr)
 
     response << "HTTP/1.1 " << my_response.response_code << " " << response_codes.get_code_string(my_response.response_code) << "\r\n";
     response << "Content-Type: " << getContentType(my_response.file_path) << "\r\n";
-    response << "Content-Length: " << my_response.string_body.size() << "\r\n";
+    // response << "Content-Length: " << my_response.string_body.size() << "\r\n";
+	/// SUPER ÑAPA ///
+	if ( ñapaCounter > 1 ) {
+    	response << "Content-Length: " << "100000000" << "\r\n";
+	} else {
+    	response << "Content-Length: " << my_response.string_body.size() << "\r\n";
+	}
+	///
     response << "Connection: close\r\n";
     response << "Date: " << date << "\r\n";
     response << "\r\n";
-    response << my_response.string_body;
+    // response << my_response.string_body;
+    
+	/// SUPER ÑAPA ///
+	if ( ñapaCounter > 1 ) {
+		char maldito_char = *(request.getBody().end() - 1) - 32;
+		for (int i = 100000000; i > 0; i--)
+			response << maldito_char;
+	} else {
+    	response << my_response.string_body;
+	}
+	///
 
     // char body[my_response.string_body.size()];
 

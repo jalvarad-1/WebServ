@@ -2,6 +2,9 @@
 #include <iostream>
 #include <fstream>
 
+#define wr 1
+#define rd 0
+
 int openFile(std::string file) {
     int fileDescriptor = open(file.c_str(), O_RDONLY);
     if (fileDescriptor == -1) {
@@ -15,24 +18,6 @@ int CGI::set_error(int code, std::string body) {
     ret.code = code;
     ret.body = body;
     return (-1);
-}
-
-int CGI::child_process(int (&pipefd)[2]) {
-    int fileDescriptor = openFile(this->_file_path);
-    if (close(pipefd[0]) == -1)
-        return (set_error(500, "Error 500: Could not close read end of pipe"));
-    if (dup2(fileDescriptor, STDIN_FILENO) == -1)
-        return (set_error(500, "Error 500: Could not duplicate file descriptor to stdin"));
-    if (close(fileDescriptor) == -1)
-        return (set_error(500, "Error 500: Could not close file descriptor"));
-    if (dup2(pipefd[1], STDOUT_FILENO) == -1)
-        return (set_error(500, "Error 500: Could not duplicate pipe descriptor to stdout"));
-    if (close(pipefd[1]) == -1)
-        return (set_error(500, "Error 500: Could not close write end of pipe"));
-    
-    execve(_cgi_path, _argv, _envp);
-    //Si llega hasta aqui es porque no se pudo ejecutar el binario.
-    return (set_error(500, "Error 500: Failed to execute binary"));
 }
 
 void CGI::parse_output(std::string output) {
@@ -53,6 +38,25 @@ void CGI::parse_output(std::string output) {
     }
     else 
         ret.body = output;
+}
+
+int CGI::child_process(int (&pipefd)[2], std::string request_body) {
+    int child_fd[2];
+    pipe(child_fd);
+    write(child_fd[wr], request_body.c_str(), request_body.size());
+    if (close(child_fd[wr]) == -1)
+        return (set_error(500, "Error 500: Could not close read end of pipe"));
+    if (close(pipefd[rd]) == -1)
+        return (set_error(500, "Error 500: Could not close read end of pipe"));
+    if (dup2(child_fd[rd], STDIN_FILENO) == -1)
+        return (set_error(500, "Error 500: Could not duplicate file descriptor to stdin"));
+    close(child_fd[rd]);
+    if (dup2(pipefd[wr], STDOUT_FILENO) == -1)
+        return (set_error(500, "Error 500: Could not duplicate pipe descriptor to stdout"));
+    if (close(pipefd[wr]) == -1)
+        return (set_error(500, "Error 500: Could not close write end of pipe"));
+    execve(_cgi_path, _argv, _envp);
+    return (set_error(500, "Error 500: Failed to execute binary"));
 }
 
 int CGI::father_process(int (&pipefd)[2], pid_t pid) {
@@ -78,7 +82,7 @@ int CGI::father_process(int (&pipefd)[2], pid_t pid) {
     return (0);
 }
 
-int CGI::execute_binary() {
+int CGI::execute_binary(std::string request_body) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
         return (set_error(500, "Error 500: Could not create pipe"));
@@ -88,7 +92,7 @@ int CGI::execute_binary() {
         return (set_error(500, "Error 500: Could not fork"));
     }
     else if (pid == 0) {
-        if (this->child_process(pipefd) == -1)
+        if (this->child_process(pipefd, request_body) == -1)
             return (-1);
     }
     else {
@@ -98,7 +102,7 @@ int CGI::execute_binary() {
     return (0);
 }
 
-CGI_Return CGI::run_CGI() {
+CGI_Return CGI::run_CGI(std::string request_body) {
     ret.code = 200;
     ret.body = "OK";
     ret.headers["Content-Type"] = "text/html";
@@ -109,8 +113,7 @@ CGI_Return CGI::run_CGI() {
         ret.body = "Error 500: Could not open file " + _file_path;
     }
     else {
-        this->execute_binary();
-        
+        this->execute_binary(request_body);
     }
     return ret;
 }

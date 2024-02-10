@@ -39,12 +39,12 @@ int HTTPServer::acceptConnection()
     return (_new_socket);
 }
 
-// void HTTPServer::readPetition(int socket) {
-//     recv(socket, _buffer, 30000, MSG_DONTWAIT);
-//     std::cout << "Leemos peticion" << std::endl;
-//     std::string pepe(_buffer);
-//     std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
-// }
+void HTTPServer::readPetition(int socket) {
+    recv(socket, _buffer, 30000, MSG_DONTWAIT);
+    std::cout << "Leemos peticion" << std::endl;
+    std::string pepe(_buffer);
+    std::cout << "resquest :\n" << pepe << std::endl;    // read(poll_fds.fd, _buffer, 30000);
+}
 
 void HTTPServer::addActiveFd( int newFd ) {
 	this->_activeFds.push_back(newFd);

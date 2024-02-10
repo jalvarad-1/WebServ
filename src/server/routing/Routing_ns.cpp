@@ -149,7 +149,7 @@ Response    Routing::processCGI(std::string file_path, std::string binary_path, 
 
     cgi.set_env(env);
     cgi.set_args(args);
-    ret = cgi.run_CGI();
+    ret = cgi.run_CGI(httpRequest.getBody());
     response.response_code = ret.code;
     response.string_body = ret.body;
     response.headers = ret.headers;

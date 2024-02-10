@@ -13,6 +13,7 @@ SRCS =	src/main.cpp\
 		src/http_request/HTTPRequest.cpp\
         src/utils/utils.cpp\
 		src/server/response_code/ResponseCode.cpp\
+		src/server/CGI/CGI.cpp\
 		src/server/routing/Routing_ns.cpp\
 
 

@@ -7,3 +7,4 @@ tester
 cgi_tester
 requirements.txt
 log.txt
+macos_cgi_tester

@@ -73,7 +73,7 @@ Response Routing::processFilePath(std::string resource_path)
     return response;
 }
 
-Response Routing::processDirPath(std::string root, std::string resource_path, LocationRules locationRule)
+Response Routing::processDirPath(std::string resource_path, LocationRules locationRule)
 {
     Response response;
     std::string default_file;
@@ -133,6 +133,29 @@ void    Routing::errorResponse(Response & response, LocationRules & locationRule
     }
 }
 
+Response    Routing::processCGI(std::string file_path, std::string binary_path, HTTPRequest & httpRequest)
+{
+    Response response;
+    CGI_Return ret;
+    std::map<std::string, std::string> env;
+    env["REQUEST_METHOD"] = httpRequest.getMethod();
+    env["SERVER_PROTOCOL"] = httpRequest.getVersion();
+    env["PATH_INFO"] = file_path; // TODO Review the meaning of PATH_INFO
+
+    std::vector<std::string> args;
+    
+    CGI cgi(file_path, binary_path);
+    args.push_back(binary_path);
+
+    cgi.set_env(env);
+    cgi.set_args(args);
+    ret = cgi.run_CGI();
+    response.response_code = ret.code;
+    response.string_body = ret.body;
+    response.headers = ret.headers;
+    return response;
+}
+
 Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule)
 {
     std::string file_path;
@@ -146,13 +169,15 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
         switch(typeOfResource(file_path))
         {
             case ISDIR:
-                response = processDirPath(locationRule.getRoot(), file_path, locationRule);//process directory
+                response = processDirPath(file_path, locationRule);//process directory
                 break;
             case ISFILE:
                 if (!locationRule.getCgiPass().empty() && \
                     isCorrectCGIExtension(file_path, locationRule.getCgiExtension())) {
+                    
                     std::cout << "es un cgi!!" << std::endl;//toca meterse a ejecutar el cgi
-                    response = processFilePath(file_path);
+                    //response = processFilePath(file_path);//process file, uncomment this line if yo want to pass more tests
+                    response = processCGI(file_path, locationRule.getCgiPass(), httpRequest);
                 }
                 else {
                     response = processFilePath(file_path);//process file

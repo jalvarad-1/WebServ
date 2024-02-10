@@ -1,6 +1,7 @@
 #include "server/MultiServer.hpp"
-
 #include "ConfigParser/Parser.hpp"
+#include "server/CGI/CGI.hpp"
+
 int main(int argc, char **argv)
 {
     if (argc != 2) {
@@ -37,3 +38,31 @@ int main(int argc, char **argv)
         return -1;
     }
 }
+
+// int main() {
+//     std::string cgi_path = "cgi_bin/cgi_python";
+//     std::string file_path = "cgi_bin/script.py";
+//     CGI_Return ret;
+
+//     // Este va a ser el mapa con el que le vamos a pasar todas las variables de entorno.
+//     std::map<std::string, std::string> env;
+//     env["REQUEST_METHOD"] = "GET";
+//     env["SERVER_PROTOCOL"] = "HTTP/1.1";
+//     env["PATH_INFO"] = " ";
+
+//     // Este va a ser el vector con el que le vamos a pasar los argumentos.
+//     std::vector<std::string> args;
+//     args.push_back("/home/pavon/WebServ/cgi_bin/cgi_python");
+
+//     CGI cgi(cgi_path, file_path);
+//     cgi.set_env(env);
+//     cgi.set_args(args);
+//     ret = cgi.run_CGI();
+
+//     std::cout << "Header Status: " << ret.headers["Status"] << std::endl;
+
+//     std::cout << "Body: " << ret.body << std::endl;
+//     //Guardamos en ret los valores que obtenemos del CGI.
+
+//     return 0;
+// }

@@ -2,6 +2,7 @@
 #define Routing_hpp
 #include "../../ConfigParser/ServerConfig.hpp"
 #include "../../http_request/HTTPRequest.hpp"
+#include "../CGI/CGI.hpp"
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -14,6 +15,7 @@
 #define ISFILE 2
 
 struct Response {
+    std::map<std::string, std::string> headers;
     std::string     string_body;
     std::string     file_path;
     int             response_code;
@@ -28,10 +30,11 @@ namespace Routing
     std::string     removeKeyValue(std::string toRemove, std::string str);//3
     short int       typeOfResource(const std::string& path);//3
 
-    Response        processDirPath(std::string root, std::string file_path, LocationRules locationRule);//3
+    Response        processDirPath(std::string file_path, LocationRules locationRule);//3
     Response        processFilePath(std::string resource_path);//3
     bool            isCorrectCGIExtension(const std::string & file_path, const std::string & extension);//3
     void            errorResponse(Response & response, LocationRules & locationRule);
+    Response        processCGI(std::string file_path, std::string binary_path, HTTPRequest & httpRequest);
 }
 /*
     

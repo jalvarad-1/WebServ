@@ -44,6 +44,7 @@ int HTTPServer::acceptConnection()
 
 bool HTTPServer::readFromBuffer( BufferRequest & bufferRequest, char * buffer ) {
 	bufferRequest.buffer_str.append(buffer);
+    std::cout << "INTENTAMOS leer " << std::endl;
 	if (bufferRequest.content_length < 0) {
 		size_t rnrn = bufferRequest.buffer_str.find("\r\n\r\n");
 		if ( rnrn == std::string::npos )
@@ -74,6 +75,8 @@ bool HTTPServer::readFromFd( int socket ) {
 		case -1:
 			return true ;
 		case 0:
+            std::cout << "Cerramos el socket: " << socket << std::endl;
+            close(socket);
 			_bufferedRequests.erase(socket);
 			return false ;
 			break ;
@@ -238,6 +241,7 @@ void HTTPServer::sendResponse(int socket, HTTPRequest & request)
 
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
+    std::cout << "Cerramos el socket: " << socket << std::endl;
     close(socket);
 
 }

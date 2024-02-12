@@ -15,12 +15,6 @@
 #define ISFILE 2
 #define ISCGI 3
 
-struct Response {
-    std::map<std::string, std::string> headers;
-    std::string     string_body;
-    std::string     file_path;
-    int             response_code;
-};
 
 namespace Routing
 {

@@ -141,7 +141,7 @@ void    Routing::errorResponse(Response & response, LocationRules & locationRule
 Response    Routing::processCGI(std::string file_path, std::string binary_path, HTTPRequest & httpRequest)
 {
     Response response;
-    CGI_Return ret;
+
     std::map<std::string, std::string> env;
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();
@@ -154,11 +154,7 @@ Response    Routing::processCGI(std::string file_path, std::string binary_path, 
 
     cgi.set_env(env);
     cgi.set_args(args);
-    ret = cgi.run_CGI(httpRequest.getBody());
-    response.response_code = ret.code;
-    response.string_body = ret.body;
-    response.headers = ret.headers;
-    return response;
+    return cgi.run_CGI(httpRequest.getBody());;
 }
 
 Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule)

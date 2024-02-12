@@ -15,8 +15,8 @@ int openFile(std::string file) {
 }
 
 int CGI::set_error(int code, std::string body) {
-    ret.code = code;
-    ret.body = body;
+    ret.response_code = code;
+    ret.string_body = body;
     return (-1);
 }
 
@@ -24,7 +24,7 @@ void CGI::parse_output(std::string output) {
     std::size_t pos = output.find("\n\r", 0);
     if (pos != std::string::npos) {
         //Guardamos el body desde justo después del salto de línea
-        ret.body = output.substr(pos + 3);
+        ret.string_body = output.substr(pos + 3);
         std::string headers;
         headers = output.substr(0, pos + 1);
         std::size_t pos = 0;
@@ -37,7 +37,7 @@ void CGI::parse_output(std::string output) {
         }
     }
     else 
-        ret.body = output;
+        ret.string_body = output;
 }
 
 int CGI::child_process(int (&pipefd)[2], std::string request_body) {
@@ -102,9 +102,9 @@ int CGI::execute_binary(std::string request_body) {
     return (0);
 }
 
-CGI_Return CGI::run_CGI(std::string request_body) {
-    ret.code = 200;
-    ret.body = "OK";
+Response CGI::run_CGI(std::string request_body) {
+    ret.response_code = 200;
+    ret.string_body = "OK";
     ret.headers["Content-Type"] = "text/html";
 
     this->execute_binary(request_body);

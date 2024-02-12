@@ -40,7 +40,7 @@ void MultiServer::run() {
             exit(EXIT_FAILURE);
         }
         for (int i = static_cast<int>(poll_fds.size()) - 1; i >= 0 ; i--) {
-			if (poll_fds[i].revents & POLLIN) {
+			if (poll_fds[i].revents & (POLLIN|POLLHUP)) {
                 // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
                 // if (status[i].port == true) {
 				if ( i < listeningFds ) {
@@ -57,6 +57,7 @@ void MultiServer::run() {
 					// status[i].server->addActiveFd(socket);
 				} else {
 					if ( !waifu[i]->readFromFd(poll_fds[i].fd) ) {
+
 						poll_fds.erase(poll_fds.begin() + i);
 						waifu.erase(waifu.begin() + i);
 					}

@@ -3,10 +3,9 @@
 LocationRules Routing::determineResourceLocation(ServerConfig serverConfig, HTTPRequest httpRequest)
 {
     std::string uri = httpRequest.getURI();
-    std::map<std::string, LocationRules> locations = serverConfig.getLocations();
     while (!uri.empty()) {
-        std::map<std::string, LocationRules>::iterator it = locations.find(uri);
-        if (it != locations.end())
+        std::map<std::string, LocationRules>::iterator it = serverConfig.locations.find(uri);
+        if (it != serverConfig.locations.end())
             return it->second;
 
         std::size_t pos = uri.find_last_of('/');
@@ -17,7 +16,7 @@ LocationRules Routing::determineResourceLocation(ServerConfig serverConfig, HTTP
         if (uri.empty())
             uri = "/";// verify if "/" URI doesn' t exist
     }
-    return locations["default"];
+    return serverConfig.locations["default"];
 }
 
 bool Routing::isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods)
@@ -163,27 +162,31 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
     std::string body;
     Response response;
     
-    if (isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods()))
-    {
-        file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
-        //std::cout << "file_path: " << typeOfResource(file_path) << file_path << std::endl;
-        switch(typeOfResource(file_path, locationRule))
-        {
-            case ISDIR:
-                response = processDirPath(file_path, locationRule);//process directory
-                break;
-            case ISCGI:
-                response = processCGI(locationRule.getCgiPass(), file_path , httpRequest);
-                break;
-            case ISFILE:
-                    response = processFilePath(file_path);//process file        
-                break;
-            default:
-                response.response_code = 404;
-        }
-    }
-    else
+    if (!isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods())) {
         response.response_code = 405;
+        errorResponse(response, locationRule);
+        return response;
+    }
+    if (!locationRule.getRedirect().empty()) {
+        response.response_code = 302;
+        response.headers["Location"] = locationRule.getRedirect();
+        return response;
+    }
+    file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
+    switch(typeOfResource(file_path, locationRule))
+    {
+        case ISDIR:
+            response = processDirPath(file_path, locationRule);//process directory
+            break;
+        case ISCGI:
+            response = processCGI(locationRule.getCgiPass(), file_path , httpRequest);
+            break;
+        case ISFILE:
+                response = processFilePath(file_path);//process file        
+            break;
+        default:
+            response.response_code = 404;
+    }
     errorResponse(response, locationRule);
     return response;
 }

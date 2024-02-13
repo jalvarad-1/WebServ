@@ -200,6 +200,9 @@ void HTTPServer::sendResponse(int socket, HTTPRequest & request)
 	///
     response << "Connection: close\r\n";
     response << "Date: " << date << "\r\n";
+    response << "Location: " << my_response.headers["Location"] << "\r\n";
+    // Location header llegará cuando se crea en el routing, con concatenar los headers que llegan
+    // del response valdría
     response << "\r\n";
     // response << my_response.string_body;
     
@@ -245,15 +248,3 @@ void HTTPServer::sendResponse(int socket, HTTPRequest & request)
     close(socket);
 
 }
-
-// void HTTPServer::launch(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status)
-// {
-//     while(true)
-//     {
-//         std::cout << "===== WAITING =====" << std::endl;
-//         accepter(poll_fds, status);
-//         handler();
-//         responder();
-//         std::cout << "===== DONE =====" << std::endl;
-//     }
-// }

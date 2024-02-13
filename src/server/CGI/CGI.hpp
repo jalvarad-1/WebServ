@@ -9,7 +9,6 @@
 # include <cstring>
 # include <unistd.h>
 
-//TODO review if it is necessary or wecan standarize the Response struct
 
 class CGI
 {

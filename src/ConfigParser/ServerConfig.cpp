@@ -7,15 +7,6 @@ ServerConfig::ServerConfig() {
     _empty_server = true;
 }
 
-ServerConfig::ServerConfig(int host, int port, std::list<std::string> serverNames,
-                    std::map<std::string, LocationRules> locations)
-{
-    this->_host = host;
-    this->_port = port;
-    this->_serverNames = serverNames;
-    this->locations = locations;
-}
-
 void    ServerConfig::setServerName(std::string serverName) {
     if (std::find(_serverNames.begin(), _serverNames.end(), serverName) == this->_serverNames.end())
         _serverNames.push_back(serverName);
@@ -32,11 +23,6 @@ int     ServerConfig::getPort() const{
 
 std::list<std::string>    ServerConfig::getServerNames() {
     return this->_serverNames;
-}
-
-std::map<std::string, LocationRules>   ServerConfig::getLocations() const
-{
-    return locations;
 }
 
 ServerConfig::~ServerConfig() {

@@ -14,6 +14,7 @@ namespace simpleParser {
         mTypes["auto_index"] = Type("auto_index", AUTO_INDEX);
         mTypes["allowed_methods"] = Type("allowed_methods", ALLOWED_METHODS);
         mTypes["cgi_pass"] = Type("cgi_pass", CGI_PASS);
+        mTypes["redirect"] = Type("redirect", REDIRECT);
     }
 
     void Parser::printServers() {
@@ -117,6 +118,9 @@ namespace simpleParser {
                         return false;
                     ret = server.locations[key_value].setCGIpass( tmp, mCurrentToken->mText );
                     break;
+                case REDIRECT:
+                    ret = server.locations[key_value].setRedirect( mCurrentToken->mText );
+                    break;
                 
                 default:
                     return false;
@@ -136,7 +140,7 @@ namespace simpleParser {
                 return expectLocationDefinition(server);
                 break;
             
-            case LISTEN ... CGI_PASS:
+            case LISTEN ... REDIRECT:
                 return expectAttributesDefinition(server, "default", type.mType);
                 break;
             

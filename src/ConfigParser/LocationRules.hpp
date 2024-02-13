@@ -13,21 +13,17 @@ private:
     std::map<int, std::string>          _error_pages;
     std::string                         _root;
     int                                 _maxBodySize;
-    std::list<std::string>              _allowedMethods; //AUTO_INDEX
+    std::list<std::string>              _allowedMethods;
     bool                                _auto_index;
     std::string                         _index;
     std::string                         _cgi_pass;
     std::string                         _cgi_extension;
-    //redirect loquesea.com  -> debe enviar status 300 y además un header con Location y el redirect
+    std::string                         _redirect;
 
 public:
     LocationRules();
     ~LocationRules();
-    //temporary constructor
-    LocationRules(std::string key_value, std::map<int,
-                std::string>  error_pages, std::string root, int maxBodySize,
-                std::list<std::string> allowedMethods, bool auto_index,
-                std::string index, std::string cgi_pass);
+    
     std::map<int, std::string>  getErrorPages() const;
     std::string getRoot() const;
     int getMaxBodySize() const;
@@ -37,6 +33,7 @@ public:
     std::string getCgiExtension() const;
     std::string getCgiPass() const;
     std::string getKeyValue() const;
+    std::string getRedirect() const;
 
     void setErrorPage(int error_code, std::string error_page);
     bool setRoot(std::string root);
@@ -46,6 +43,7 @@ public:
     bool setAllowedMethod(std::string allowedMethod);
     bool setCGIpass(std::string cgi_extension, std::string cgi_pass);
     void setKeyValue(std::string key_value);
+    bool setRedirect(std::string redirect);
 
     void printAttributes() const;
 };

@@ -11,7 +11,6 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     
     _sock = socket(domain, service, protocol);
     test_connection(_sock);
-    /// TODO Review this variable in future
     int reuse = 1;
     test_connection(setsockopt(_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)));
 

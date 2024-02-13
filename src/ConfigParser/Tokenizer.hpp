@@ -57,6 +57,7 @@ namespace simpleParser {
         AUTO_INDEX,
         ALLOWED_METHODS,
         CGI_PASS,
+        REDIRECT,
         EMPTY_TYPE
     };
 

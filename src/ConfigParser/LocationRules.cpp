@@ -10,20 +10,6 @@ LocationRules::LocationRules() {
     _cgi_extension = "";
 }
 
-LocationRules::LocationRules(std::string key_value,std::map<int,
-    std::string> error_pages, std::string root, int maxBodySize,
-    std::list<std::string> allowedMethods, bool auto_index, std::string index, std::string cgi_pass)
-{
-    this->_key_value = key_value;
-    this->_error_pages = error_pages;
-    this->_root = root;
-    this->_maxBodySize = maxBodySize;
-    this->_allowedMethods = allowedMethods;
-    this->_auto_index = auto_index;
-    this->_index = index;
-    this->_cgi_pass = cgi_pass;
-}
-
 std::map<int, std::string>  LocationRules::getErrorPages() const
 {
     return this->_error_pages;
@@ -67,6 +53,11 @@ std::string LocationRules::getCgiPass() const
 std::string LocationRules::getCgiExtension() const
 {
     return this->_cgi_extension;
+}
+
+std::string LocationRules::getRedirect() const
+{
+    return this->_redirect;
 }
 
 LocationRules::~LocationRules() {}
@@ -129,6 +120,14 @@ bool LocationRules::setCGIpass(std::string cgi_extension, std::string cgi_pass)
     return true;
 }
 
+bool LocationRules::setRedirect(std::string redirect)
+{
+    if (_redirect != "")
+        return false;
+    _redirect = redirect;
+    return true;
+}
+
 void LocationRules::setKeyValue(std::string key_value)
 {
     _key_value = key_value;
@@ -142,6 +141,7 @@ void LocationRules::printAttributes() const {
         std::cout << "  Index: " << _index << std::endl;
         std::cout << "  CGI Pass: " << _cgi_pass << std::endl;
         std::cout << "  CGI Extension: " << _cgi_extension << std::endl;
+        std::cout << "  Redirect: " << _redirect << std::endl;
 
         std::cout << "  Error Pages:" << std::endl;
         for (std::map<int, std::string>::const_iterator it = _error_pages.begin(); it != _error_pages.end(); ++it) {

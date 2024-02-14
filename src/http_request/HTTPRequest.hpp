@@ -1,8 +1,9 @@
 #ifndef HTTPRequest_hpp
 #define HTTPRequest_hpp
 
-#include <string>
-#include <map>
+# include <string>
+# include <map>
+# include <cstdlib>
 
 #define METHODS_WITH_BODY "POST"
 

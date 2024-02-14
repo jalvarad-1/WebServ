@@ -1,6 +1,7 @@
 #include "HTTPRequest.hpp"
 #include <sstream>
 #include <iostream>
+#include <stdlib.h>
 
 void trim(std::string& s)
 {

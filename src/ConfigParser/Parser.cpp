@@ -179,9 +179,9 @@ namespace simpleParser {
         
         while (mCurrentToken != mEndToken) {
             if (!expectServerDefinition()) {
-                throw std::runtime_error("Unknown identifier " + mCurrentToken->mText + \
-                                        " line: " + \
-                                        std::to_string(1 + mCurrentToken->mLineNumber) + ".");
+                // throw std::runtime_error("Unknown identifier " + mCurrentToken->mText + \
+                //                         " line: " + \
+                //                         std::to_string(1 + mCurrentToken->mLineNumber) + ".");
             }
         }
         if (_confServers.empty())

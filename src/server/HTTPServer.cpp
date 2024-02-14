@@ -9,24 +9,6 @@ BufferRequest::BufferRequest( void ) {
 	content_length = -1;
 }
 
-std::map<std::string, std::string> getContentMap() {
-    std::map<std::string, std::string> contentMap;
-    contentMap["html"] = "text/html";
-    contentMap["htm"] = "text/json";
-    contentMap["json"] = "text/json";
-    contentMap["xml"] = "text/xml";
-    contentMap["jpeg"] = "image/jpeg";
-    contentMap["png"] = "image/png";
-    contentMap["gif"] = "image/gif";
-    contentMap["mp3"] = "audio/mpeg";
-    contentMap["wav"] = "audio/wav";
-    contentMap["mp4"] = "video/mp4";
-    contentMap["mpeg"] = "video/mpeg";
-    contentMap["mpg"] = "video/mpeg";
-    contentMap["pdf"] = "application/pdf";
-    return contentMap;
-}
-
 HTTPServer::HTTPServer(int domain, int service, int protocol,
             int port, u_long interface, int bklg, const ServerConfig & serverConfig):
             _serverConfig(serverConfig)
@@ -147,7 +129,30 @@ std::string getDate() {
     return buffer;
 }
 
+std::map<std::string, std::string> getContentMap() {
+    std::map<std::string, std::string> contentMap;
+    contentMap["html"] = "text/html";
+    contentMap["htm"] = "text/json";
+    contentMap["json"] = "text/json";
+    contentMap["xml"] = "text/xml";
+    contentMap["jpeg"] = "image/jpeg";
+    contentMap["png"] = "image/png";
+    contentMap["gif"] = "image/gif";
+    contentMap["mp3"] = "audio/mpeg";
+    contentMap["wav"] = "audio/wav";
+    contentMap["mp4"] = "video/mp4";
+    contentMap["mpeg"] = "video/mpeg";
+    contentMap["mpg"] = "video/mpeg";
+    contentMap["pdf"] = "application/pdf";
+    return contentMap;
+}
+
 std::string getContentType(std::string file_path) {
+    static std::map<std::string, std::string> ContentMap;
+
+    if (ContentMap.empty()) {
+        ContentMap = getContentMap();
+    }
     std::vector<std::string> path = split_char(file_path, '/');
     std::string file = path.empty()? "" : path.back();
     std::cout << "segunda linea file path" << std::endl;
@@ -156,7 +161,7 @@ std::string getContentType(std::string file_path) {
     std::string content_type;
     if (file_split.size() > 1) {
         extension = file_split.back();
-        content_type = getContentMap()[extension];
+        content_type = ContentMap[extension];
         if (content_type == "")
             content_type = "text/plain";
     }

@@ -24,7 +24,7 @@ class HTTPServer
         int _new_socket;
         ListeningSocket * _socket;
         ServerConfig _serverConfig;
-		
+		std::map<std::string, std::string> contentMap;
 		std::map<int, BufferRequest> _bufferedRequests ;
 
     public:

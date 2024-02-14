@@ -13,6 +13,19 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
             int port, u_long interface, int bklg, const ServerConfig & serverConfig):
             _serverConfig(serverConfig)
 {
+    contentMap["html"] = "text/html";
+    contentMap["htm"] = "text/json";
+    contentMap["json"] = "text/json";
+    contentMap["xml"] = "text/xml";
+    contentMap["jpeg"] = "image/jpeg";
+    contentMap["png"] = "image/png";
+    contentMap["gif"] = "image/gif";
+    contentMap["mp3"] = "audio/mpeg";
+    contentMap["wav"] = "audio/wav";
+    contentMap["mp4"] = "video/mp4";
+    contentMap["mpeg"] = "video/mpeg";
+    contentMap["mpg"] = "video/mpeg";
+    contentMap["pdf"] = "application/pdf";
     _socket = new ListeningSocket(domain, service, protocol, port, interface, bklg);
 	for (int i = 0; i < 30000; i++) {
         _buffer[i] = 0;
@@ -129,7 +142,7 @@ std::string getDate() {
     return buffer;
 }
 
-std::string getContentType(std::string file_path) {
+std::string getContentType(std::string file_path, std::map<std::string, std::string> contentMap) {
     std::vector<std::string> path = split_char(file_path, '/');
     std::string file = path.empty()? "" : path.back();
     std::cout << "segunda linea file path" << std::endl;
@@ -138,30 +151,33 @@ std::string getContentType(std::string file_path) {
     std::string content_type;
     if (file_split.size() > 1) {
         extension = file_split.back();
-        if (extension == "html" || extension == "htm")
-            content_type = "text/html";
-        else if (extension == "json")
-            content_type = "text/json";
-        else if (extension == "xml")
-            content_type = "text/xml";
-        else if (extension == "jpeg")
-            content_type = "image/jpeg";
-        else if (extension == "png")
-            content_type = "image/png";
-        else if (extension == "gif")
-            content_type = "image/gif";
-        else if (extension == "mp3")
-            content_type = "audio/mpeg";
-        else if (extension == "wav")
-            content_type = "audio/wav";
-        else if (extension == "mp4")
-            content_type = "video/mp4";
-        else if (extension == "mpeg" || extension == "mpg")
-            content_type = "video/mpeg";
-        else if (extension == "pdf")
-            content_type = "application/pdf";
-        else
+        content_type = contentMap[extension];
+        if (content_type == "")
             content_type = "text/plain";
+        // if (extension == "html" || extension == "htm")
+        //     content_type = "text/html";
+        // else if (extension == "json")
+        //     content_type = "text/json";
+        // else if (extension == "xml")
+        //     content_type = "text/xml";
+        // else if (extension == "jpeg")
+        //     content_type = "image/jpeg";
+        // else if (extension == "png")
+        //     content_type = "image/png";
+        // else if (extension == "gif")
+        //     content_type = "image/gif";
+        // else if (extension == "mp3")
+        //     content_type = "audio/mpeg";
+        // else if (extension == "wav")
+        //     content_type = "audio/wav";
+        // else if (extension == "mp4")
+        //     content_type = "video/mp4";
+        // else if (extension == "mpeg" || extension == "mpg")
+        //     content_type = "video/mpeg";
+        // else if (extension == "pdf")
+        //     content_type = "application/pdf";
+        // else
+        //     content_type = "text/plain";
     }
     else {
         content_type = "text/plain";
@@ -189,7 +205,7 @@ void HTTPServer::sendResponse(int socket, HTTPRequest & request)
     std::stringstream response;
 
     response << "HTTP/1.1 " << my_response.response_code << " " << response_codes.get_code_string(my_response.response_code) << "\r\n";
-    response << "Content-Type: " << getContentType(my_response.file_path) << "\r\n";
+    response << "Content-Type: " << getContentType(my_response.file_path, this->contentMap) << "\r\n";
     // response << "Content-Length: " << my_response.string_body.size() << "\r\n";
 	/// SUPER ÑAPA ///
 	if ( ñapaCounter > 1 ) {

@@ -177,15 +177,14 @@ namespace simpleParser {
         mEndToken = tokens.end();
         mCurrentToken = tokens.begin();
         
-        // while (mCurrentToken != mEndToken) {
-            // if (!expectServerDefinition()) {
-            //     throw std::runtime_error("Unknown identifier " + mCurrentToken->mText + \
-            //                             " line: " + \
-            //                             std::to_string(1 + mCurrentToken->mLineNumber) + ".");
-            // }
-        // }
-        // if (_confServers.empty())
-        //     throw std::runtime_error("No server definition found");
+        while (mCurrentToken != mEndToken) {
+            if (!expectServerDefinition()) {
+                throw std::runtime_error("Unknown identifier " + mCurrentToken->mText + \
+                                        " line: " + ".");
+            }
+        }
+        if (_confServers.empty())
+            throw std::runtime_error("No server definition found");
         // printServers();
     }
 

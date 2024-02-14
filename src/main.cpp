@@ -27,9 +27,9 @@ int main(int argc, char **argv)
     try {
         simpleParser::Tokenizer tokenizer;
         std::vector<simpleParser::Token> tokens = tokenizer.parse(buffer);
-        for (size_t i = 0; i < tokens.size(); i++) {
-            tokens[i].debugPrint();
-        }
+        // for (size_t i = 0; i < tokens.size(); i++) {
+        //     tokens[i].debugPrint();
+        // }
         simpleParser::Parser parser;
         parser.parse(tokens);
         MultiServer multi(parser.getConfigServers());

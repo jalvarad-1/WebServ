@@ -34,6 +34,7 @@ void MultiServer::run() {
 	int listeningFds = poll_fds.size();
 
     while (true) {
+        std::cout << "Conexion" << std::endl;
         int ret = poll(poll_fds.data(), poll_fds.size(), -1);
         if (ret < 0) {
             perror("poll failed");
@@ -41,6 +42,7 @@ void MultiServer::run() {
         }
         for (int i = static_cast<int>(poll_fds.size()) - 1; i >= 0 ; i--) {
 			if (poll_fds[i].revents & (POLLIN|POLLHUP)) {
+
                 // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
                 // if (status[i].port == true) {
 				if ( i < listeningFds ) {

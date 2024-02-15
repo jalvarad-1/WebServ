@@ -8,6 +8,7 @@
 // #include <chrono>  // Para la hora
 #include <cstdlib>
 #include "../ConfigParser/Parser.hpp"
+#include "CGIManager.hpp"
 
 struct fd_status{
     // std::chrono::system_clock::time_point fecha;

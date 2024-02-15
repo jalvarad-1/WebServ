@@ -170,7 +170,7 @@ std::string getContentType(std::string file_path) {
     return (content_type);
 }
 
-void HTTPServer::sendResponse(int socket, HTTPRequest & request)
+int HTTPServer::sendResponse(int socket, HTTPRequest & request)
 {   
     // Esta clase se encarga de parsear la petición.
     // HTTPRequest request(requestStr);

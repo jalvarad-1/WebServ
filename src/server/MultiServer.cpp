@@ -30,9 +30,8 @@ MultiServer::~MultiServer() {
 }
 
 void MultiServer::run() {
-    int socket;
-	int listeningFds = poll_fds.size();
-
+    int socket, listeningFds = poll_fds.size(), serverSockets = listeningFds, readResult;
+	CGIManager cgiManager;
     while (true) {
         int ret = poll(poll_fds.data(), poll_fds.size(), -1);
         if (ret < 0) {
@@ -54,12 +53,35 @@ void MultiServer::run() {
 					poll_fds.push_back(pfd);
 					waifu.push_back(waifu[i]);
 					status.push_back(status[i]);
+					serverSockets++;
 					// status[i].server->addActiveFd(socket);
-				} else {
-					if ( !waifu[i]->readFromFd(poll_fds[i].fd) ) {
+				} else if ( i < serverSockets ) {
+					readResult = waifu[i]->readFromFd(poll_fds[i].fd);
+					switch (readResult) {
+						case -1:
+							poll_fds.erase(poll_fds.begin() + i);
+							waifu.erase(waifu.begin() + i);
+							serverSockets--;
+							break ;
+						case 0:
+							continue ;
+						default:
+							struct pollfd pfd;
+							memset(&pfd, 0, sizeof(pfd));
+							pfd.fd = readResult;  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
+							pfd.events = POLLIN;
+							pfd.revents = 0;
+							poll_fds.push_back(pfd);
+					}
+					// if ( !waifu[i]->readFromFd(poll_fds[i].fd) ) {
 
-						poll_fds.erase(poll_fds.begin() + i);
-						waifu.erase(waifu.begin() + i);
+					// 	poll_fds.erase(poll_fds.begin() + i);
+					// 	waifu.erase(waifu.begin() + i);
+					// 	serverSockets--;
+					// }
+				} else {
+					if (!cgiManager.readOutput(poll_fds[i].fd)) {
+						poll_fds.erase(poll_fds.begin() + i);						
 					}
 				}
                 // status[i].server->readPetition(socket);

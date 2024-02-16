@@ -39,7 +39,21 @@ void returnResponse(std::string & responseStr, int outSocket) {
     send(outSocket, responseStr.c_str(), responseStr.size(), 0);
 }
 
-void executeCGI(...) {
+void executeCGI(std::string file_path, std::string binary_path, HTTPRequest & httpRequest) {
 	BufferCGI bufferCGI;
-	int outFd = exec(..., &bufferCGI.pid);
+	
+	std::map<std::string, std::string> env;
+    env["REQUEST_METHOD"] = httpRequest.getMethod();
+    env["SERVER_PROTOCOL"] = httpRequest.getVersion();
+    env["PATH_INFO"] = file_path; // TODO Review the meaning of PATH_INFO
+	
+	std::vector<std::string> args;
+	CGI cgi(file_path);
+	args.push_back(binary_path);
+
+	cgi.set_env(env);
+	cgi.set_args(args);
+	
+	//int outFd = exec(..., &bufferCGI.pid);
+	int outFd = cgi.exec_cgi(httpRequest.getBody(), &bufferCGI.pid);
 }

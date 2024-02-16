@@ -29,6 +29,7 @@ public:
     Response run_CGI(std::string request_body);
     void set_env(std::map<std::string, std::string> map);
     void set_args(std::vector<std::string> vec);
+    int exec_cgi(std::string request_body, pid_t *pid);
 };
 
 #endif

@@ -102,6 +102,31 @@ int CGI::execute_binary(std::string request_body) {
     return (0);
 }
 
+int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        return -1;
+        //TODO throw exception
+        //return (set_error(500, "Error 500: Could not create pipe"));
+    }
+    pid_t pid = fork();
+    if (pid == -1) {
+        //TODO throw exception
+        //return (set_error(500, "Error 500: Could not fork"));
+    }
+    else if (pid == 0) {
+        if (this->child_process(pipefd, request_body) == -1)
+            return (-1);
+    }
+    else {
+        *ret_pid = pid;
+        close(pipefd[wr]);
+        return pipefd[rd];
+    }
+    //TODO throw exception
+    return (-1);
+}
+
 Response CGI::run_CGI(std::string request_body) {
     ret.response_code = 200;
     ret.string_body = "OK";

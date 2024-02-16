@@ -7,6 +7,7 @@
 #include "../ConfigParser/ServerConfig.hpp"
 #include "ListeningSocket.hpp"
 #include <poll.h>
+#include "CGIManager.hpp"
 
 #define SERVER_BUFFER_SIZE 4200
 
@@ -34,12 +35,12 @@ class HTTPServer
         int acceptConnection();
         void handler();
         void readPetition(int socket);
-        int sendResponse(int socket, HTTPRequest & request);
+        int sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();
 
 		bool readFromBuffer( BufferRequest & bufferRequest, char * buffer ) ;
-		bool readFromFd( int socket ) ;
+		bool readFromFd( int socket, CGIManager & cgiManager ) ;
 };
 #endif

@@ -22,6 +22,8 @@ class CGIManager {
 	public:
 
 		bool readOutput(int fd) ;
+		int executeCGI(std::string cgi_pass, std::string binary_path, HTTPRequest & httpRequest, int socket) ;
+
 
 	protected:
 
@@ -29,6 +31,7 @@ class CGIManager {
 
 		std::map<int, BufferCGI> _bufferedCGIs ;
 		void returnResponse(std::string & responseStr, int outSocket) ;
+
 
 } ;
 

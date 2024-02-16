@@ -1,7 +1,7 @@
 CXX := g++
 NAME := webserv
 # CXXFLAGS := -Wall -Wextra -std=c++98 -g3
-CXXFLAGS := -Wall -Wextra -std=c++98 -fsanitize=address
+CXXFLAGS := -Wall -Wextra #-std=c++98 -fsanitize=address
 SRCS =	src/main.cpp\
 		src/server/HTTPServer.cpp\
 		src/server/ListeningSocket.cpp\
@@ -15,6 +15,7 @@ SRCS =	src/main.cpp\
 		src/server/response_code/ResponseCode.cpp\
 		src/server/CGI/CGI.cpp\
 		src/server/routing/Routing_ns.cpp\
+		src/server/CGIManager.cpp\
 
 
 OBJS = $(SRCS:.cpp=.o)

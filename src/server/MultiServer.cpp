@@ -40,6 +40,7 @@ void MultiServer::run() {
         }
         for (int i = static_cast<int>(poll_fds.size()) - 1; i >= 0 ; i--) {
 			if (poll_fds[i].revents & (POLLIN|POLLHUP)) {
+				std::cerr << "RECIBIMOS DATOS POR EL FD " << poll_fds[i].fd << std::endl;
                 // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
                 // if (status[i].port == true) {
 				if ( i < listeningFds ) {
@@ -56,7 +57,7 @@ void MultiServer::run() {
 					serverSockets++;
 					// status[i].server->addActiveFd(socket);
 				} else if ( i < serverSockets ) {
-					readResult = waifu[i]->readFromFd(poll_fds[i].fd);
+					readResult = waifu[i]->readFromFd(poll_fds[i].fd, cgiManager);
 					switch (readResult) {
 						case -1:
 							poll_fds.erase(poll_fds.begin() + i);

@@ -66,7 +66,7 @@ bool HTTPServer::readFromBuffer( BufferRequest & bufferRequest, char * buffer ) 
 	return true ;
 }
 
-bool HTTPServer::readFromFd( int socket ) {
+bool HTTPServer::readFromFd( int socket, CGIManager & cgiManager ) {
 	char buffer[SERVER_BUFFER_SIZE] ;
 	ssize_t bytes_read ;
 	bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
@@ -84,7 +84,7 @@ bool HTTPServer::readFromFd( int socket ) {
 			buffer[bytes_read] = '\0';
 			if ( readFromBuffer(_bufferedRequests[socket], buffer) )
 				return true ;
-			sendResponse(socket, _bufferedRequests[socket].request);
+			sendResponse(socket, _bufferedRequests[socket].request, cgiManager);
 			_bufferedRequests.erase(socket);
 			return false ;
 	}
@@ -170,16 +170,50 @@ std::string getContentType(std::string file_path) {
     return (content_type);
 }
 
-int HTTPServer::sendResponse(int socket, HTTPRequest & request)
+int HTTPServer::sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager)
 {   
     // Esta clase se encarga de parsear la petición.
     // HTTPRequest request(requestStr);
     std::cout << "Uri: " << request.getURI() << std::endl;
     // En esta clase almacenamos todos los códigos de error y su mensaje.
+
+    LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, request);
+
+    if (!Routing::isAllowedMethod(request.getMethod(), locationRules.getAllowedMethods())) {
+        // TODO: devolver response 405
+        // response.response_code = 405;
+        // errorResponse(response, locationRule);
+        return -1 ;
+    }
+    if (!locationRules.getRedirect().empty()) {
+        // TODO: devolver response 302
+        // response.response_code = 302;
+        // response.headers["Location"] = locationRule.getRedirect();
+        return -1;
+    }
+
+    std::string file_path = locationRules.getRoot() + Routing::removeKeyValue(locationRules.getKeyValue(), request.getURI());
+
+    Response httpResponse;
+
+    switch (Routing::typeOfResource(file_path, locationRules)) {
+        case ISCGI:
+	        std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
+            return cgiManager.executeCGI(locationRules.getCgiPass(), file_path, request, socket);
+        case ISDIR:
+            httpResponse = Routing::processDirPath(file_path, locationRules);//process directory
+            break;
+        case ISFILE:
+            httpResponse = Routing::processFilePath(file_path);//process file        
+            break;
+        default:
+            httpResponse.response_code = 404; // TODO send response 404
+    }
+
     ResponseCode response_codes;
 
     // Clase que simula la respuesta que me va a llegar del rooting
-    Response my_response = Routing::returnResource(this->_serverConfig, request);
+    // Response my_response = Routing::returnResource(this->_serverConfig, request);
     //my_response.file_path = "/home/asdas/archivo.html";
     //my_response.string_body = "Este es el mensaje que devolverá la página web!";
     //my_response.response_code = 400;
@@ -188,23 +222,23 @@ int HTTPServer::sendResponse(int socket, HTTPRequest & request)
 
     std::stringstream response;
 
-    response << "HTTP/1.1 " << my_response.response_code << " " << response_codes.get_code_string(my_response.response_code) << "\r\n";
-    response << "Content-Type: " << getContentType(my_response.file_path) << "\r\n";
-    // response << "Content-Length: " << my_response.string_body.size() << "\r\n";
+    response << "HTTP/1.1 " << httpResponse.response_code << " " << response_codes.get_code_string(httpResponse.response_code) << "\r\n";
+    response << "Content-Type: " << getContentType(httpResponse.file_path) << "\r\n";
+    // response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
 	/// SUPER ÑAPA ///
 	if ( ñapaCounter > 1 ) {
     	response << "Content-Length: " << "100000000" << "\r\n";
 	} else {
-    	response << "Content-Length: " << my_response.string_body.size() << "\r\n";
+    	response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
 	}
 	///
     response << "Connection: close\r\n";
     response << "Date: " << date << "\r\n";
-    response << "Location: " << my_response.headers["Location"] << "\r\n";
+    response << "Location: " << httpResponse.headers["Location"] << "\r\n";
     // Location header llegará cuando se crea en el routing, con concatenar los headers que llegan
     // del response valdría
     response << "\r\n";
-    // response << my_response.string_body;
+    // response << httpResponse.string_body;
     
 	/// SUPER ÑAPA ///
 	if ( ñapaCounter > 1 ) {
@@ -212,19 +246,19 @@ int HTTPServer::sendResponse(int socket, HTTPRequest & request)
 		for (int i = 100000000; i > 0; i--)
 			response << maldito_char;
 	} else {
-    	response << my_response.string_body;
+    	response << httpResponse.string_body;
 	}
 	///
 
-    // char body[my_response.string_body.size()];
+    // char body[httpResponse.string_body.size()];
 
-    // snprintf(body, sizeof(body), "%s", my_response.string_body.c_str());
+    // snprintf(body, sizeof(body), "%s", httpResponse.string_body.c_str());
     
     // char response[500+strlen(body)];
 
-    // std::cout << my_response.string_body << std::endl;
+    // std::cout << httpResponse.string_body << std::endl;
 	// std::cerr << date.c_str() << std::endl;
-	// std::cerr << my_response.string_body.c_str() << std::endl;
+	// std::cerr << httpResponse.string_body.c_str() << std::endl;
     // std::cout << "sendResponse" << std::endl;
     // sprintf(response,
     //     "HTTP/1.1 %d %s\r\n"
@@ -234,17 +268,17 @@ int HTTPServer::sendResponse(int socket, HTTPRequest & request)
     //     "Date: %s\r\n"
     //     "\r\n"
     //     "%s",
-    //     my_response.response_code,
-    //     response_codes.get_code_string(my_response.response_code).c_str(),
-    //     getContentType(my_response.file_path).c_str(),
-    //     strlen(my_response.string_body.c_str()),
+    //     httpResponse.response_code,
+    //     response_codes.get_code_string(httpResponse.response_code).c_str(),
+    //     getContentType(httpResponse.file_path).c_str(),
+    //     strlen(httpResponse.string_body.c_str()),
     //     date.c_str(),
-    //     my_response.string_body.c_str()
+    //     httpResponse.string_body.c_str()
     // );
 
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
     std::cout << "Cerramos el socket: " << socket << std::endl;
     close(socket);
-
+    return -1;
 }

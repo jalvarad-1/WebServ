@@ -40,10 +40,10 @@ void MultiServer::run() {
         }
         for (int i = static_cast<int>(poll_fds.size()) - 1; i >= 0 ; i--) {
 			if (poll_fds[i].revents & (POLLIN|POLLHUP)) {
-				std::cerr << "RECIBIMOS DATOS POR EL FD " << poll_fds[i].fd << std::endl;
                 // std::cout << "run ()" << status[i].server->getListeningPort() << std::endl;
                 // if (status[i].port == true) {
 				if ( i < listeningFds ) {
+					std::cerr << "RECIBIMOS DATOS POR EL listening FD " << poll_fds[i].fd << std::endl;
 					socket = waifu[i]->acceptConnection();
                     //status[i].server->readPetition(socket);
 					struct pollfd pfd;
@@ -57,6 +57,7 @@ void MultiServer::run() {
 					serverSockets++;
 					// status[i].server->addActiveFd(socket);
 				} else if ( i < serverSockets ) {
+					std::cerr << "RECIBIMOS DATOS POR EL socket FD " << poll_fds[i].fd << std::endl;
 					readResult = waifu[i]->readFromFd(poll_fds[i].fd, cgiManager);
 					switch (readResult) {
 						case -1:
@@ -72,7 +73,15 @@ void MultiServer::run() {
 							pfd.fd = readResult;  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
 							pfd.events = POLLIN;
 							pfd.revents = 0;
+							// std::cerr << "VOY A AÑADIR EL FD " << readResult << std::endl;
+							// std::cerr << "POLL_FDS TIENE UN SIZE DE " << poll_fds.size() << std::endl;
 							poll_fds.push_back(pfd);
+							std::cerr << "VOY A BORRAR EL FD " << poll_fds[i].fd << std::endl;
+							sleep(5);
+							poll_fds.erase(poll_fds.begin() + i);
+							waifu.erase(waifu.begin() + i);
+							serverSockets--;
+							// std::cerr << "POLL_FDS TIENE UN SIZE DE " << poll_fds.size() << std::endl;
 					}
 					// if ( !waifu[i]->readFromFd(poll_fds[i].fd) ) {
 
@@ -81,6 +90,7 @@ void MultiServer::run() {
 					// 	serverSockets--;
 					// }
 				} else {
+					std::cerr << "RECIBIMOS DATOS POR EL cgi FD " << poll_fds[i].fd << std::endl;
 					if (!cgiManager.readOutput(poll_fds[i].fd)) {
 						poll_fds.erase(poll_fds.begin() + i);						
 					}

@@ -10,20 +10,27 @@ bool CGIManager::readOutput( int fd ) {
 	// std::cerr << bytes_read << " bytes read from fd " << fd << std::endl;
 	switch (bytes_read) {
 		case -1:
+			std::cerr << "CGI READ DA -1" << std::endl;
+			sleep(1);
 			return true ;
 		case 0:
+			std::cerr << "CGI READ DA 0" << std::endl;
+			sleep(1);
             std::cout << "Cerramos el fd: " << fd << std::endl;
             close(fd);
 			_bufferedCGIs.erase(fd);
 			return false ;
 			break ;
 		default:
+			std::cerr << "CGI READ DA " << bytes_read << std::endl;
+			sleep(1);
 			buffer[bytes_read] = '\0';
 			// if ( readFromBuffer(_bufferedCGIs[fd], buffer) )
 			// 	return true ;
 			// sendResponse(fd, _bufferedCGIs[fd].request);
 			_bufferedCGIs[fd].buffer_str.append(buffer);
 			if (waitpid(_bufferedCGIs[fd].pid, NULL, WNOHANG) != 0) {
+				bytes_read = read(fd, buffer, CGI_BUFFER_SIZE - 1);
 				while (bytes_read > 0) {
 					_bufferedCGIs[fd].buffer_str.append(buffer);
 					bytes_read = read(fd, buffer, CGI_BUFFER_SIZE - 1);
@@ -39,6 +46,7 @@ bool CGIManager::readOutput( int fd ) {
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	std::cout << "\n---Response---\n" << responseStr <<  "---" << std::endl;
     send(outSocket, responseStr.c_str(), responseStr.size(), 0);
+	close(outSocket);
 }
 
 int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRequest & httpRequest, int socket) {

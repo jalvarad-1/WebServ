@@ -41,6 +41,6 @@ class HTTPServer
         int getListeningPort();
 
 		bool readFromBuffer( BufferRequest & bufferRequest, char * buffer ) ;
-		bool readFromFd( int socket, CGIManager & cgiManager ) ;
+		int readFromFd( int socket, CGIManager & cgiManager ) ;
 };
 #endif

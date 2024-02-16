@@ -66,29 +66,33 @@ bool HTTPServer::readFromBuffer( BufferRequest & bufferRequest, char * buffer ) 
 	return true ;
 }
 
-bool HTTPServer::readFromFd( int socket, CGIManager & cgiManager ) {
+int HTTPServer::readFromFd( int socket, CGIManager & cgiManager ) {
 	char buffer[SERVER_BUFFER_SIZE] ;
 	ssize_t bytes_read ;
 	bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
 	// std::cerr << bytes_read << " bytes read from socket " << socket << std::endl;
 	switch (bytes_read) {
 		case -1:
-			return true ;
+			return 0 ;
 		case 0:
             std::cout << "Cerramos el socket: " << socket << std::endl;
             close(socket);
 			_bufferedRequests.erase(socket);
-			return false ;
+			return -1 ;
 			break ;
 		default:
 			buffer[bytes_read] = '\0';
 			if ( readFromBuffer(_bufferedRequests[socket], buffer) )
-				return true ;
-			sendResponse(socket, _bufferedRequests[socket].request, cgiManager);
-			_bufferedRequests.erase(socket);
-			return false ;
+				return 0 ;
+			return sendResponse(socket, _bufferedRequests[socket].request, cgiManager);
+			// _bufferedRequests.erase(socket); // TODO ERASE THE SOCKET
+			// return false ;
 	}
 }
+
+// int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
+
+// }
 
 void HTTPServer::handler()
 {

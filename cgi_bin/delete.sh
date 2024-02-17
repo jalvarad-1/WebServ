@@ -11,6 +11,13 @@ fi
 # Elimina el archivo pasado como variable de entorno.
 rm -rf uploaded_files/$filename;
 
+if [ $? -ne 0 ]; then
+  echo -e "Status: 404 Not found"
+  echo -e "\r"
+  echo -e "Path not found or file not found"
+  exit 1
+fi
+
 echo -e "Status: 204 Deleted"
 echo -e "Filename: $filename"
 echo -e "Content-Type: text/plain"

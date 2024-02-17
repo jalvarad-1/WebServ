@@ -108,7 +108,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 				// response.headers["Location"] = locationRule.getRedirect();
 				return 0 ;
 			}
-			std::string file_path = locationRules.getRoot() + Routing::removeKeyValue(locationRules.getKeyValue(), httpRequest.getURI());
+			std::string file_path = Routing::createFilePath(locationRules, httpRequest);
 			Response httpResponse;
 			switch (Routing::typeOfResource(file_path, locationRules)) {
 				case ISCGI:

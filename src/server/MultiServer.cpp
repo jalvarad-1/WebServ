@@ -33,7 +33,6 @@ void MultiServer::run() {
     int socket, listeningFds = poll_fds.size(), serverSockets = listeningFds, readResult;
 	CGIManager cgiManager;
     while (true) {
-        std::cout << "Conexion" << std::endl;
         int ret = poll(poll_fds.data(), poll_fds.size(), -1);
         if (ret < 0) {
             perror("poll failed");

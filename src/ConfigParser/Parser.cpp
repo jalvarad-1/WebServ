@@ -185,7 +185,7 @@ namespace simpleParser {
         }
         if (_confServers.empty())
             throw std::runtime_error("No server definition found");
-        printServers();
+        // printServers();
     }
 
     Token Parser::expectOperator(const std::string & name) {

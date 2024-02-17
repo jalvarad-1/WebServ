@@ -142,7 +142,30 @@ std::string getDate() {
     return buffer;
 }
 
+std::map<std::string, std::string> getContentMap() {
+    std::map<std::string, std::string> contentMap;
+    contentMap["html"] = "text/html";
+    contentMap["htm"] = "text/json";
+    contentMap["json"] = "text/json";
+    contentMap["xml"] = "text/xml";
+    contentMap["jpeg"] = "image/jpeg";
+    contentMap["png"] = "image/png";
+    contentMap["gif"] = "image/gif";
+    contentMap["mp3"] = "audio/mpeg";
+    contentMap["wav"] = "audio/wav";
+    contentMap["mp4"] = "video/mp4";
+    contentMap["mpeg"] = "video/mpeg";
+    contentMap["mpg"] = "video/mpeg";
+    contentMap["pdf"] = "application/pdf";
+    return contentMap;
+}
+
 std::string getContentType(std::string file_path) {
+    static std::map<std::string, std::string> ContentMap;
+
+    if (ContentMap.empty()) {
+        ContentMap = getContentMap();
+    }
     std::vector<std::string> path = split_char(file_path, '/');
     std::string file = path.empty()? "" : path.back();
     std::cout << "segunda linea file path" << std::endl;
@@ -151,29 +174,8 @@ std::string getContentType(std::string file_path) {
     std::string content_type;
     if (file_split.size() > 1) {
         extension = file_split.back();
-        if (extension == "html" || extension == "htm")
-            content_type = "text/html";
-        else if (extension == "json")
-            content_type = "text/json";
-        else if (extension == "xml")
-            content_type = "text/xml";
-        else if (extension == "jpeg")
-            content_type = "image/jpeg";
-        else if (extension == "png")
-            content_type = "image/png";
-        else if (extension == "gif")
-            content_type = "image/gif";
-        else if (extension == "mp3")
-            content_type = "audio/mpeg";
-        else if (extension == "wav")
-            content_type = "audio/wav";
-        else if (extension == "mp4")
-            content_type = "video/mp4";
-        else if (extension == "mpeg" || extension == "mpg")
-            content_type = "video/mpeg";
-        else if (extension == "pdf")
-            content_type = "application/pdf";
-        else
+        content_type = ContentMap[extension];
+        if (content_type == "")
             content_type = "text/plain";
     }
     else {

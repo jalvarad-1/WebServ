@@ -8,11 +8,8 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
-# Obtener el primer argumento
-file=$1
-
-# Imprimir el mensaje utilizando el argumento
-echo $file > uploaded_files/$filename;
+# Elimina el archivo pasado como variable de entorno.
+rm -rf uploaded_files/$filename;
 
 if [ $? -ne 0 ]; then
   echo -e "Status: 404 Not found"
@@ -21,10 +18,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
-echo -e "Status: 201 Created"
+echo -e "Status: 204 Deleted"
 echo -e "Filename: $filename"
 echo -e "Content-Type: text/plain"
 echo -e "\r"
-echo -e "File created successfully"
-echo -e $pwd
+echo -e "File deleted successfully"

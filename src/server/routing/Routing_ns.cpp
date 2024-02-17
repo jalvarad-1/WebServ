@@ -144,7 +144,7 @@ Response    Routing::processCGI(std::string file_path, std::string binary_path, 
     std::map<std::string, std::string> env;
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();
-    env["PATH_INFO"] = file_path; // TODO Review the meaning of PATH_INFO
+    env["PATH_INFO"] = httpRequest.getPathInfo(); // TODO Review the meaning of PATH_INFO
 
     std::vector<std::string> args;
     
@@ -154,6 +154,25 @@ Response    Routing::processCGI(std::string file_path, std::string binary_path, 
     cgi.set_env(env);
     cgi.set_args(args);
     return cgi.run_CGI(httpRequest.getBody());;
+}
+
+std::string Routing::createFilePath(LocationRules locationRule, HTTPRequest& httpRequest) {
+    std::string uri = httpRequest.getURI();
+    std::string cgi_extension = locationRule.getCgiExtension();
+
+    if (!locationRule.getCgiPass().empty()) {
+        size_t extension_pos = uri.find(cgi_extension);
+        if (extension_pos != std::string::npos) {
+            size_t after_extension_pos = extension_pos + cgi_extension.length();
+            if (after_extension_pos == uri.length() || uri[after_extension_pos] == '/') {
+                httpRequest.setPathInfo(uri.substr(after_extension_pos));
+                uri.erase(after_extension_pos);
+            }
+        }
+    }
+
+    std::string final_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), uri);
+    return final_path;
 }
 
 Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule)
@@ -172,7 +191,8 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
         response.headers["Location"] = locationRule.getRedirect();
         return response;
     }
-    file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
+    std::cout << "URI debbug: " << httpRequest.getURI() << std::endl;
+    file_path = createFilePath(locationRule, httpRequest);
     switch(typeOfResource(file_path, locationRule))
     {
         case ISDIR:

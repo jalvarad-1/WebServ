@@ -30,6 +30,7 @@ namespace Routing
     bool            isCorrectCGIExtension(const std::string & file_path, const std::string & extension);//3
     void            errorResponse(Response & response, LocationRules & locationRule);
     Response        processCGI(std::string file_path, std::string binary_path, HTTPRequest & httpRequest);
+    std::string     createFilePath(LocationRules locationRule, HTTPRequest& httpRequest);
 }
 /*
     

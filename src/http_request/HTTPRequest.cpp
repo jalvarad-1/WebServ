@@ -1,6 +1,7 @@
 #include "HTTPRequest.hpp"
 #include <sstream>
 #include <iostream>
+#include <stdlib.h>
 
 void trim(std::string& s)
 {
@@ -120,4 +121,12 @@ std::string HTTPRequest::getErrorMessage() const
 
 std::map<std::string, std::string> HTTPRequest::getHeaders() const {
     return _headers;
+}
+
+std::string HTTPRequest::getPathInfo() const {
+    return _path_info;
+}
+
+void HTTPRequest::setPathInfo(std::string path_info) {
+    _path_info = path_info;
 }

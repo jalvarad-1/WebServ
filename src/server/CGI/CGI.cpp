@@ -56,6 +56,8 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     if (close(pipefd[wr]) == -1)
         return (set_error(500, "Error 500: Could not close write end of pipe"));
     execve(_cgi_path, _argv, _envp);
+	close(pipefd[wr]);
+	std::exit(1);
     return (set_error(500, "Error 500: Failed to execute binary"));
 }
 
@@ -116,7 +118,7 @@ int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
     }
     else if (pid == 0) {
         if (this->child_process(pipefd, request_body) == -1)
-            return (-1);
+            return (-3);
     }
     else {
         *ret_pid = pid;
@@ -124,7 +126,7 @@ int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
         return pipefd[rd];
     }
     //TODO throw exception
-    return (-1);
+    return (-2);
 }
 
 Response CGI::run_CGI(std::string request_body) {

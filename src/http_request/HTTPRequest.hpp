@@ -6,8 +6,6 @@
 
 #define METHODS_WITH_BODY "POST"
 
-inline int ñapaCounter;
-
 class HTTPRequest {
     private:
         std::string _method;

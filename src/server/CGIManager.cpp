@@ -11,11 +11,12 @@ bool CGIManager::readOutput( int fd ) {
 	switch (bytes_read) {
 		case -1:
 			std::cerr << "CGI READ DA -1" << std::endl;
-			sleep(1);
+			// sleep(1);
 			return true ;
 		case 0:
 			std::cerr << "CGI READ DA 0" << std::endl;
-			sleep(1);
+			// sleep(1);
+			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
             std::cout << "Cerramos el fd: " << fd << std::endl;
             close(fd);
 			_bufferedCGIs.erase(fd);
@@ -23,13 +24,14 @@ bool CGIManager::readOutput( int fd ) {
 			break ;
 		default:
 			std::cerr << "CGI READ DA " << bytes_read << std::endl;
-			sleep(1);
+			// sleep(1);
 			buffer[bytes_read] = '\0';
 			// if ( readFromBuffer(_bufferedCGIs[fd], buffer) )
 			// 	return true ;
 			// sendResponse(fd, _bufferedCGIs[fd].request);
 			_bufferedCGIs[fd].buffer_str.append(buffer);
 			if (waitpid(_bufferedCGIs[fd].pid, NULL, WNOHANG) != 0) {
+				std::cerr << "PROGRAMA MUERTO" << std::endl;
 				bytes_read = read(fd, buffer, CGI_BUFFER_SIZE - 1);
 				while (bytes_read > 0) {
 					_bufferedCGIs[fd].buffer_str.append(buffer);
@@ -39,6 +41,7 @@ bool CGIManager::readOutput( int fd ) {
 				_bufferedCGIs.erase(fd);
 				return false ;
 			}
+			std::cerr << "PROGRAMA VIVO" << std::endl;
 			return true ;
 	}
 }
@@ -68,6 +71,6 @@ int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRe
 	int outFd = cgi.exec_cgi(httpRequest.getBody(), &bufferCGI.pid);
 	bufferCGI.out_socket = socket;
 	_bufferedCGIs[outFd] = bufferCGI;
-	std::cerr << "VOY A DEVOLVER " << outFd << std::endl;
+	std::cerr << "--VOY A DEVOLVER " << outFd << std::endl;
 	return outFd;
 }

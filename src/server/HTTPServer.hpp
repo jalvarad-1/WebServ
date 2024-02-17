@@ -35,12 +35,14 @@ class HTTPServer
         int acceptConnection();
         void handler();
         void readPetition(int socket);
-        int sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager);
+        // int sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager);
+		int sendResponse(int socket, Response & httpResponse);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
         ListeningSocket * get_socket();
         int getListeningPort();
 
-		bool readFromBuffer( BufferRequest & bufferRequest, char * buffer ) ;
-		int readFromFd( int socket, CGIManager & cgiManager ) ;
+		int handleEvent( int socket, CGIManager & cgiManager ) ;
+		int handleRead( int socket, BufferRequest & bufferRequest ) ;
+		ssize_t readFromFd( int socket, std::string & bufferStr ) ;
 };
 #endif

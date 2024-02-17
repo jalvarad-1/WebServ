@@ -58,30 +58,29 @@ void MultiServer::run() {
 					// status[i].server->addActiveFd(socket);
 				} else if ( i < serverSockets ) {
 					std::cerr << "RECIBIMOS DATOS POR EL socket FD " << poll_fds[i].fd << std::endl;
-					readResult = waifu[i]->readFromFd(poll_fds[i].fd, cgiManager);
+					readResult = waifu[i]->handleEvent(poll_fds[i].fd, cgiManager);
 					switch (readResult) {
 						case -1:
+							continue ;
+						case 0:
 							poll_fds.erase(poll_fds.begin() + i);
 							waifu.erase(waifu.begin() + i);
 							serverSockets--;
 							break ;
-						case 0:
-							continue ;
 						default:
 							struct pollfd pfd;
 							memset(&pfd, 0, sizeof(pfd));
 							pfd.fd = readResult;  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
 							pfd.events = POLLIN;
 							pfd.revents = 0;
-							// std::cerr << "VOY A AÑADIR EL FD " << readResult << std::endl;
+							std::cerr << "VOY A AÑADIR EL FD " << readResult << std::endl;
 							// std::cerr << "POLL_FDS TIENE UN SIZE DE " << poll_fds.size() << std::endl;
 							poll_fds.push_back(pfd);
 							std::cerr << "VOY A BORRAR EL FD " << poll_fds[i].fd << std::endl;
-							sleep(5);
+							// sleep(5);
 							poll_fds.erase(poll_fds.begin() + i);
 							waifu.erase(waifu.begin() + i);
 							serverSockets--;
-							// std::cerr << "POLL_FDS TIENE UN SIZE DE " << poll_fds.size() << std::endl;
 					}
 					// if ( !waifu[i]->readFromFd(poll_fds[i].fd) ) {
 

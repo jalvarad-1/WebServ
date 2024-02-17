@@ -42,109 +42,93 @@ int HTTPServer::acceptConnection()
     return (_new_socket);
 }
 
-bool HTTPServer::readFromBuffer( BufferRequest & bufferRequest, char * buffer ) {
-	bufferRequest.buffer_str.append(buffer);
-    std::cout << "INTENTAMOS leer " << std::endl;
-	if (bufferRequest.content_length < 0) {
-		size_t rnrn = bufferRequest.buffer_str.find("\r\n\r\n");
-		if ( rnrn == std::string::npos )
-			return true ;
-		if ( bufferRequest.request.getMethod().empty() ) {
-			bufferRequest.request = HTTPRequest(bufferRequest.buffer_str.substr(0, rnrn + 4));
-			std::cout << "\n---Request---\n" << bufferRequest.buffer_str.substr(0, rnrn + 4) << "---" << std::endl;
-			bufferRequest.content_length = bufferRequest.request.returnContentLength();
-			if ( bufferRequest.content_length < 0 )	
-				return false ;
-			bufferRequest.buffer_str.erase(bufferRequest.buffer_str.begin() + rnrn + 4);
-		}
+ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
+	char buffer[SERVER_BUFFER_SIZE] ;
+	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
+	std::cerr << bytes_read << " read from socket " << socket << std::endl;
+	if (bytes_read > 0) {
+		buffer[bytes_read] = '\0';
+		bufferStr.append(buffer);
 	}
-	if ( static_cast<int>(bufferRequest.buffer_str.size()) >= bufferRequest.content_length ) {
-		bufferRequest.request._body = bufferRequest.buffer_str;
-		std::cout << "\n---Body---\n" << bufferRequest.buffer_str << "---" << std::endl;
-		return false ;
-	}
-	return true ;
+	return bytes_read;
 }
 
-int HTTPServer::readFromFd( int socket, CGIManager & cgiManager ) {
-	char buffer[SERVER_BUFFER_SIZE] ;
-	ssize_t bytes_read ;
-	bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
-	// std::cerr << bytes_read << " bytes read from socket " << socket << std::endl;
-	switch (bytes_read) {
-		case -1:
-			return 0 ;
-		case 0:
-            std::cout << "Cerramos el socket: " << socket << std::endl;
-            close(socket);
-			_bufferedRequests.erase(socket);
-			return -1 ;
-			break ;
-		default:
-			buffer[bytes_read] = '\0';
-			if ( readFromBuffer(_bufferedRequests[socket], buffer) )
-				return 0 ;
-			return sendResponse(socket, _bufferedRequests[socket].request, cgiManager);
-			// _bufferedRequests.erase(socket); // TODO ERASE THE SOCKET
-			// return false ;
+int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
+	std::string & bufferStr = bufferRequest.buffer_str;
+	ssize_t bytes_read = readFromFd(socket, bufferStr);
+	if (bytes_read > 0) {
+		if (bufferRequest.content_length < 0) {
+			size_t rnrn = bufferStr.find("\r\n\r\n");
+			if ( rnrn == std::string::npos ) {
+				std::cerr << "NO HE ENCONTRADO EL FINAL" << std::endl;
+				return -1 ;
+			}
+			if ( bufferRequest.request.getMethod().empty() ) {
+				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn + 4));
+				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn + 4) << "---" << std::endl;
+				bufferRequest.content_length = bufferRequest.request.returnContentLength();
+				if ( bufferRequest.content_length < 0 )	
+					return 1 ;
+				bufferStr.erase(bufferStr.begin() + rnrn + 4);
+			}
+		}
+		if ( static_cast<int>(bufferStr.size()) >= bufferRequest.content_length ) {
+			bufferRequest.request._body = bufferStr;
+			std::cout << "\n---Body---\n" << bufferStr << "---" << std::endl;
+			return 1 ;
+		}
+		return -1 ;
 	}
+	return static_cast<int>(bytes_read);
 }
 
 int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
-    BufferRequest bufferRequest = _bufferedRequests[socket];
-    switch ( readFromFd(socket, bufferRequest.buffer_str) {
+    BufferRequest & bufferRequest = _bufferedRequests[socket];
+    switch ( handleRead(socket, bufferRequest) ) {
 	    case -1 :
 	        return -1 ;
 	    case 0 :
-	        _bufferedRequests.erase(socket);
+            std::cout << "Cerramos el socket: " << socket << std::endl;
+            close(socket);
+			_bufferedRequests.erase(socket);
 	        return 0 ;
 	    default :
-	        if (bufferRequest.content_length < 0) {
-	            size_t rnrn = bufferRequest.buffer_str.find("\r\n\r\n");
-		    if ( rnrn == std::string::npos )
-			return true ;
-		    if ( bufferRequest.request.getMethod().empty() ) {
-			bufferRequest.request = HTTPRequest(bufferRequest.buffer_str.substr(0, rnrn + 4));
-			std::cout << "\n---Request---\n" << bufferRequest.buffer_str.substr(0, rnrn + 4) << "---" << std::endl;
-			bufferRequest.content_length = bufferRequest.request.returnContentLength();
-			if ( bufferRequest.content_length < 0 )	
-				return false ;
-			bufferRequest.buffer_str.erase(bufferRequest.buffer_str.begin() + rnrn + 4);
-		    }
-	        }
-	        if ( static_cast<int>(bufferRequest.buffer_str.size()) >= bufferRequest.content_length ) {
-		    bufferRequest.request._body = bufferRequest.buffer_str;
-		    std::cout << "\n---Body---\n" << bufferRequest.buffer_str << "---" << std::endl;
-		    return false ;
-	        }
-}
-
-void HTTPServer::handler()
-{
-    std::cout << "----------------- Este es el buffer: -----------------" << std::endl;
-    std::cout << _buffer << std::endl;
-    std::cout << "----------------- Esta es la clase HTTPRequest ----------------" << std::endl;
-    std::string raw_request(_buffer);
-    HTTPRequest request(raw_request);
-
-    if (request.getErrorMessage() != "") {
-        std::cout << "Error: " << request.getErrorMessage() << std::endl;
-        return ;
-    }
-
-    std::cout << "Method: " << request.getMethod() << std::endl;
-    std::cout << "URI: " << request.getURI() << std::endl;
-    std::cout << "HTTP Version: " << request.getVersion() << std::endl;
-
-    // Printing headers
-    std::map<std::string, std::string> headers = request.getHeaders();
-    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
-        std::cout << it->first << ": " << it->second << std::endl;
-
-    if (request.methodAcceptsBody())
-        std::cout << "Body: " << request.getBody() << std::endl;
-
-    return ;
+			HTTPRequest httpRequest = bufferRequest.request;
+			std::cout << "Uri: " << httpRequest.getURI() << std::endl;
+			LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, httpRequest);
+			if (!Routing::isAllowedMethod(httpRequest.getMethod(), locationRules.getAllowedMethods())) {
+				// TODO: devolver response 405
+				// response.response_code = 405;
+				// errorResponse(response, locationRule);
+				return 0 ;
+			}
+			if (!locationRules.getRedirect().empty()) {
+				// TODO: devolver response 302
+				// response.response_code = 302;
+				// response.headers["Location"] = locationRule.getRedirect();
+				return 0 ;
+			}
+			std::string file_path = locationRules.getRoot() + Routing::removeKeyValue(locationRules.getKeyValue(), httpRequest.getURI());
+			Response httpResponse;
+			switch (Routing::typeOfResource(file_path, locationRules)) {
+				case ISCGI:
+					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
+					return cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
+				case ISDIR:
+					httpResponse = Routing::processDirPath(file_path, locationRules);//process directory
+					break;
+				case ISFILE:
+					httpResponse = Routing::processFilePath(file_path);//process file        
+					break;
+				default:
+					httpResponse.response_code = 404; // TODO send response 404
+			}
+		sendResponse(socket, httpResponse);
+		std::cout << "Cerramos el socket: " << socket << std::endl;
+    	close(socket);
+		_bufferedRequests.erase(socket);
+		return 0 ;
+	}
 }
 
 std::string getDate() {
@@ -199,115 +183,21 @@ std::string getContentType(std::string file_path) {
     return (content_type);
 }
 
-int HTTPServer::sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager)
+int HTTPServer::sendResponse(int socket, Response & httpResponse)
 {   
-    // Esta clase se encarga de parsear la petición.
-    // HTTPRequest request(requestStr);
-    std::cout << "Uri: " << request.getURI() << std::endl;
-    // En esta clase almacenamos todos los códigos de error y su mensaje.
-
-    LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, request);
-
-    if (!Routing::isAllowedMethod(request.getMethod(), locationRules.getAllowedMethods())) {
-        // TODO: devolver response 405
-        // response.response_code = 405;
-        // errorResponse(response, locationRule);
-        return -1 ;
-    }
-    if (!locationRules.getRedirect().empty()) {
-        // TODO: devolver response 302
-        // response.response_code = 302;
-        // response.headers["Location"] = locationRule.getRedirect();
-        return -1;
-    }
-
-    std::string file_path = locationRules.getRoot() + Routing::removeKeyValue(locationRules.getKeyValue(), request.getURI());
-
-    Response httpResponse;
-
-    switch (Routing::typeOfResource(file_path, locationRules)) {
-        case ISCGI:
-	        std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
-            return cgiManager.executeCGI(locationRules.getCgiPass(), file_path, request, socket);
-        case ISDIR:
-            httpResponse = Routing::processDirPath(file_path, locationRules);//process directory
-            break;
-        case ISFILE:
-            httpResponse = Routing::processFilePath(file_path);//process file        
-            break;
-        default:
-            httpResponse.response_code = 404; // TODO send response 404
-    }
-
     ResponseCode response_codes;
-
-    // Clase que simula la respuesta que me va a llegar del rooting
-    // Response my_response = Routing::returnResource(this->_serverConfig, request);
-    //my_response.file_path = "/home/asdas/archivo.html";
-    //my_response.string_body = "Este es el mensaje que devolverá la página web!";
-    //my_response.response_code = 400;
-
     std::string date = getDate();
-
     std::stringstream response;
 
     response << "HTTP/1.1 " << httpResponse.response_code << " " << response_codes.get_code_string(httpResponse.response_code) << "\r\n";
     response << "Content-Type: " << getContentType(httpResponse.file_path) << "\r\n";
-    // response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
-	/// SUPER ÑAPA ///
-	if ( ñapaCounter > 1 ) {
-    	response << "Content-Length: " << "100000000" << "\r\n";
-	} else {
-    	response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
+    response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
+	for ( std::map<std::string, std::string>::iterator iter = httpResponse.headers.begin(); iter != httpResponse.headers.end(); iter++ ) {
+		response << iter->first << ": " << iter->second << "\r\n";
 	}
-	///
-    response << "Connection: close\r\n";
-    response << "Date: " << date << "\r\n";
-    response << "Location: " << httpResponse.headers["Location"] << "\r\n";
-    // Location header llegará cuando se crea en el routing, con concatenar los headers que llegan
-    // del response valdría
     response << "\r\n";
-    // response << httpResponse.string_body;
-    
-	/// SUPER ÑAPA ///
-	if ( ñapaCounter > 1 ) {
-		char maldito_char = *(request.getBody().end() - 1) - 32;
-		for (int i = 100000000; i > 0; i--)
-			response << maldito_char;
-	} else {
-    	response << httpResponse.string_body;
-	}
-	///
-
-    // char body[httpResponse.string_body.size()];
-
-    // snprintf(body, sizeof(body), "%s", httpResponse.string_body.c_str());
-    
-    // char response[500+strlen(body)];
-
-    // std::cout << httpResponse.string_body << std::endl;
-	// std::cerr << date.c_str() << std::endl;
-	// std::cerr << httpResponse.string_body.c_str() << std::endl;
-    // std::cout << "sendResponse" << std::endl;
-    // sprintf(response,
-    //     "HTTP/1.1 %d %s\r\n"
-    //     "Content-Type: %s\r\n"
-    //     "Content-Length: %zu\r\n"
-    //     "Connection: close\r\n"
-    //     "Date: %s\r\n"
-    //     "\r\n"
-    //     "%s",
-    //     httpResponse.response_code,
-    //     response_codes.get_code_string(httpResponse.response_code).c_str(),
-    //     getContentType(httpResponse.file_path).c_str(),
-    //     strlen(httpResponse.string_body.c_str()),
-    //     date.c_str(),
-    //     httpResponse.string_body.c_str()
-    // );
-
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
     std::cout << "Cerramos el socket: " << socket << std::endl;
-    close(socket);
     return -1;
 }

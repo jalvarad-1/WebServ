@@ -31,19 +31,6 @@ bool HTTPRequest::methodAcceptsBody() const
 
  int HTTPRequest::returnContentLength() const
 {
-	/// SUPER ÑAPA ! ///
-	if ( getHeader("Transfer-Encoding") == "chunked" ) {
-		std::cerr << "ÑAPA!" << std::endl;
-		if (ñapaCounter == 0) {
-			ñapaCounter++;
-			std::cerr << "I RETURN -1!" << std::endl;
-			return -1;
-		}
-		ñapaCounter++;
-		std::cerr << "I RETURN 100000000!" << std::endl;
-		return 1000;
-	}
-	///
     std::string contentLengthStr = getHeader("Content-Length");
 	if ( contentLengthStr.empty() )
 		return -1 ;

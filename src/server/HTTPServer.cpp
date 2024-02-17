@@ -90,9 +90,34 @@ int HTTPServer::readFromFd( int socket, CGIManager & cgiManager ) {
 	}
 }
 
-// int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
-
-// }
+int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
+    BufferRequest bufferRequest = _bufferedRequests[socket];
+    switch ( readFromFd(socket, bufferRequest.buffer_str) {
+	    case -1 :
+	        return -1 ;
+	    case 0 :
+	        _bufferedRequests.erase(socket);
+	        return 0 ;
+	    default :
+	        if (bufferRequest.content_length < 0) {
+	            size_t rnrn = bufferRequest.buffer_str.find("\r\n\r\n");
+		    if ( rnrn == std::string::npos )
+			return true ;
+		    if ( bufferRequest.request.getMethod().empty() ) {
+			bufferRequest.request = HTTPRequest(bufferRequest.buffer_str.substr(0, rnrn + 4));
+			std::cout << "\n---Request---\n" << bufferRequest.buffer_str.substr(0, rnrn + 4) << "---" << std::endl;
+			bufferRequest.content_length = bufferRequest.request.returnContentLength();
+			if ( bufferRequest.content_length < 0 )	
+				return false ;
+			bufferRequest.buffer_str.erase(bufferRequest.buffer_str.begin() + rnrn + 4);
+		    }
+	        }
+	        if ( static_cast<int>(bufferRequest.buffer_str.size()) >= bufferRequest.content_length ) {
+		    bufferRequest.request._body = bufferRequest.buffer_str;
+		    std::cout << "\n---Body---\n" << bufferRequest.buffer_str << "---" << std::endl;
+		    return false ;
+	        }
+}
 
 void HTTPServer::handler()
 {

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+filename = vgutten.txt && adfsdfasdfasdadfd
+
 # Verificar si se proporciona un argumento
 if [ $# -eq 0 ]; then
   echo -e "Status: 400 Bad request"

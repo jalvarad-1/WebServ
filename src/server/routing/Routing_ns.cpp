@@ -172,6 +172,7 @@ Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, Loc
         response.headers["Location"] = locationRule.getRedirect();
         return response;
     }
+    std::cout << "URI debbug: " << httpRequest.getURI() << std::endl;
     file_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), httpRequest.getURI());
     switch(typeOfResource(file_path, locationRule))
     {

@@ -15,6 +15,7 @@ class HTTPRequest {
         std::string _http_version;
         std::map<std::string, std::string> _headers;
         std::string _error_message;
+        std::string _path_info;
 
     public:
         std::string _body;
@@ -31,6 +32,8 @@ class HTTPRequest {
         std::map<std::string, std::string> getHeaders() const;
         std::string getBody() const;
         std::string getErrorMessage() const;
+        std::string getPathInfo() const;
+        void setPathInfo(std::string path_info);
 };
 
 #endif

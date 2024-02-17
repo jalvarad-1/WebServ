@@ -56,6 +56,7 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     if (close(pipefd[wr]) == -1)
         return (set_error(500, "Error 500: Could not close write end of pipe"));
     execve(_cgi_path, _argv, _envp);
+    // perror("Error en execve");
     return (set_error(500, "Error 500: Failed to execute binary"));
 }
 

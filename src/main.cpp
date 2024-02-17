@@ -41,8 +41,8 @@
 // }
 
 // int main() {
-//     std::string cgi_path = "./cgi_bin/uploader";
-//     std::string file_path = "./cgi_bin/upload.sh";
+//     std::string cgi_path = "./cgi_bin/cgi_python";
+//     std::string file_path = "./cgi_bin/script.py";
 //     std::string file_content = "Esto es el contenido del archivo";
 //     Response ret;
 

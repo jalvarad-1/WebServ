@@ -163,9 +163,10 @@ std::string Routing::createFilePath(LocationRules locationRule, HTTPRequest& htt
     if (!locationRule.getCgiPass().empty()) {
         size_t extension_pos = uri.find(cgi_extension);
         if (extension_pos != std::string::npos) {
-            if (extension_pos + cgi_extension.length() == uri.length() || uri[extension_pos + cgi_extension.length()] == '/') {
-                httpRequest.setPathInfo( uri.substr(extension_pos + cgi_extension.length()) );
-                uri.erase(extension_pos);
+            size_t after_extension_pos = extension_pos + cgi_extension.length();
+            if (after_extension_pos == uri.length() || uri[after_extension_pos] == '/') {
+                httpRequest.setPathInfo(uri.substr(after_extension_pos));
+                uri.erase(after_extension_pos);
             }
         }
     }

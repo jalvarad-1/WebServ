@@ -7,6 +7,7 @@
 
 BufferRequest::BufferRequest( void ) {
 	content_length = -1;
+	status = NEW_REQUEST;
 }
 
 HTTPServer::HTTPServer(int domain, int service, int protocol,
@@ -53,31 +54,75 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 	return bytes_read;
 }
 
+bool HTTPServer::parseChunk(std::string & bufferStr, std::string & body) {
+	size_t firstRN = bufferStr.find("\r\n");
+	if (firstRN == std::string::npos)
+		return false ;
+	char *pEnd;
+	double characterN = std::strtod(bufferStr.substr(0, firstRN).c_str(), &pEnd);
+	if (*pEnd != '\0') {
+		//TODO throw exception
+	}
+	if (characterN == 0)
+		return true ;
+	firstRN += 2;
+	size_t secondRN = bufferStr.find("\r\n", firstRN);
+	if (secondRN == std::string::npos)
+		return false ;
+	if (static_cast<double>(secondRN) != characterN) {
+		//TODO throw exception
+	}
+	body.append(bufferStr.substr(firstRN, secondRN));
+	secondRN += 2;
+	bufferStr.erase(bufferStr.begin() + firstRN + secondRN);
+	return parseChunk(bufferStr, body) ;
+}
+
 int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 	std::string & bufferStr = bufferRequest.buffer_str;
 	ssize_t bytes_read = readFromFd(socket, bufferStr);
 	if (bytes_read > 0) {
-		if (bufferRequest.content_length < 0) {
-			size_t rnrn = bufferStr.find("\r\n\r\n");
-			if ( rnrn == std::string::npos ) {
-				std::cerr << "NO HE ENCONTRADO EL FINAL" << std::endl;
-				return -1 ;
-			}
-			if ( bufferRequest.request.getMethod().empty() ) {
-				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn + 4));
-				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn + 4) << "---" << std::endl;
+		size_t rnrn;
+		switch (bufferRequest.status) {
+			case NEW_REQUEST:
+				// BUSCAMOS RNRN Y GENERAMOS LA NUEVA REQUEST
+				rnrn = bufferStr.find("\r\n\r\n");
+				if ( rnrn == std::string::npos ) {
+					std::cerr << "NO HE ENCONTRADO EL FINAL" << std::endl;
+					return -1 ;
+				}
+				rnrn += 4;
+				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn));
+				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn) << "---" << std::endl;
+				if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked") {
+					bufferRequest.status = CHUNKED_BODY;
+					bufferStr.erase(bufferStr.begin() + rnrn);
+					return -1 ;
+				}
 				bufferRequest.content_length = bufferRequest.request.returnContentLength();
 				if ( bufferRequest.content_length < 0 )	
 					return 1 ;
-				bufferStr.erase(bufferStr.begin() + rnrn + 4);
-			}
+				bufferRequest.status = FILLING_BODY;
+				bufferStr.erase(bufferStr.begin() + rnrn);
+				return -1 ;
+			case FILLING_BODY:
+				// COMPROBAMOS EL CONTENT_LENGTH Y ACTUAMOS SEGÚN
+				if ( static_cast<int>(bufferStr.size()) < bufferRequest.content_length ) {
+					return -1 ;
+				}
+				bufferRequest.request._body = bufferStr;
+				std::cout << "\n---Body---\n" << bufferStr << "---" << std::endl;
+				return 1 ;
+			case CHUNKED_BODY:
+				// BUSCAMOS DOS RN Y APPENDEAMOS AL BODY DESPUÉS DE PASAR POR UNA FUNCIÓN DE PARSEO
+				if (parseChunk(bufferStr, bufferRequest.request._body))  {
+					return 1 ;
+				}
+				return -1 ;
+			default:
+				// NUNCA DEBERÍA PASAR
+				return -1;
 		}
-		if ( static_cast<int>(bufferStr.size()) >= bufferRequest.content_length ) {
-			bufferRequest.request._body = bufferStr;
-			std::cout << "\n---Body---\n" << bufferStr << "---" << std::endl;
-			return 1 ;
-		}
-		return -1 ;
 	}
 	return static_cast<int>(bytes_read);
 }
@@ -198,6 +243,7 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
 		response << iter->first << ": " << iter->second << "\r\n";
 	}
     response << "\r\n";
+	response << httpResponse.string_body;
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
     std::cout << "Cerramos el socket: " << socket << std::endl;

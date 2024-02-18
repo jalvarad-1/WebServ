@@ -48,5 +48,6 @@ class HTTPServer
 		int handleEvent( int socket, CGIManager & cgiManager ) ;
 		int handleRead( int socket, BufferRequest & bufferRequest ) ;
 		ssize_t readFromFd( int socket, std::string & bufferStr ) ;
+		bool parseChunk(std::string & bufferStr, std::string & body);
 };
 #endif

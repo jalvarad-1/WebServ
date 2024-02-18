@@ -1,5 +1,5 @@
-
 #include "CGIManager.hpp"
+#include "response_code/ResponseCode.hpp"
 
 bool CGIManager::readOutput( int fd ) {
 	char buffer[CGI_BUFFER_SIZE] ;
@@ -46,8 +46,33 @@ bool CGIManager::readOutput( int fd ) {
 	}
 }
 
+Response parse_output(std::string output) {
+	Response ret;
+    std::size_t pos = output.find("\n\r", 0);
+    if (pos != std::string::npos) {
+        //Guardamos el body desde justo después del salto de línea
+        ret.string_body = output.substr(pos + 3);
+        std::string headers;
+        headers = output.substr(0, pos + 1);
+        std::size_t pos = 0;
+        std::size_t prevPos = 0;
+        std::string linea;
+        while ((pos = headers.find("\n", prevPos)) != std::string::npos) {
+            linea = headers.substr(prevPos, pos - prevPos);
+            ret.headers[linea.substr(0, linea.find(":"))] = linea.substr(linea.find(":") + 2);
+            prevPos = pos + 1;
+        }
+    }
+    else 
+        ret.string_body = output;
+	return ret;
+}
+
+
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
-	std::cout << "\n---Response---\n" << responseStr <<  "---" << std::endl;
+	std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
+	ResponseCode response_codes;
+	Response ret = parse_output(responseStr);
     send(outSocket, responseStr.c_str(), responseStr.size(), 0);
 	close(outSocket);
 }

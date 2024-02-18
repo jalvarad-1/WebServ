@@ -1,7 +1,7 @@
 #include "CGI.hpp"
 #include <iostream>
 #include <fstream>
-
+#include <stdlib.h>
 #define wr 1
 #define rd 0
 
@@ -57,7 +57,8 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
         return (set_error(500, "Error 500: Could not close write end of pipe"));
     execve(_cgi_path, _argv, _envp);
 	close(pipefd[wr]);
-	std::exit(1);
+	// std::exit(1);
+    exit(1);
     return (set_error(500, "Error 500: Failed to execute binary"));
 }
 

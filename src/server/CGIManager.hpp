@@ -7,6 +7,7 @@
 # include <unistd.h>
 # include <sys/socket.h>
 # include "../http_request/HTTPRequest.hpp"
+# include "routing/Response.hpp"
 # include "CGI/CGI.hpp"
 
 # define CGI_BUFFER_SIZE 4200

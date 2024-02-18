@@ -10,10 +10,8 @@
 #include "../ConfigParser/Parser.hpp"
 #include "CGIManager.hpp"
 
-struct fd_status{
-    // std::chrono::system_clock::time_point fecha;
-    int status;
-    bool port;
+struct fd_info{// 
+    short int fd_type;//listening socket / connection  / cgi_fd
     HTTPServer* server;
 };
 

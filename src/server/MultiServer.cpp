@@ -59,7 +59,7 @@ void MultiServer::run() {
 					// status[i].server->addActiveFd(socket);
 				} else if ( i < serverSockets ) {
 					std::cerr << "RECIBIMOS DATOS POR EL socket FD " << poll_fds[i].fd << std::endl;
-					readResult = waifu[i]->handleEvent(poll_fds[i].fd, cgiManager);
+					readResult = waifu[i]->handleEvent(poll_fds[i].fd, cgiManager);//cgi -> NULL , socket -> httpServer (map <int , httpServer>)
 					switch (readResult) {
 						case -1:
 							continue ;

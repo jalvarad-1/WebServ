@@ -44,21 +44,16 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     int child_fd[2];
     pipe(child_fd);
     write(child_fd[wr], request_body.c_str(), request_body.size());
-    if (close(child_fd[wr]) == -1)
-        return (set_error(500, "Error 500: Could not close read end of pipe"));
-    if (close(pipefd[rd]) == -1)
-        return (set_error(500, "Error 500: Could not close read end of pipe"));
-    if (dup2(child_fd[rd], STDIN_FILENO) == -1)
-        return (set_error(500, "Error 500: Could not duplicate file descriptor to stdin"));
-    close(child_fd[rd]);
-    if (dup2(pipefd[wr], STDOUT_FILENO) == -1)
-        return (set_error(500, "Error 500: Could not duplicate pipe descriptor to stdout"));
-    if (close(pipefd[wr]) == -1)
-        return (set_error(500, "Error 500: Could not close write end of pipe"));
+    if (close(child_fd[wr]) == -1 || close(pipefd[rd]) == -1 ||
+        dup2(child_fd[rd], STDIN_FILENO) == -1 || close(child_fd[rd]) == -1 ||
+        dup2(pipefd[wr], STDOUT_FILENO) == -1 || close(pipefd[wr]) == -1 ) {
+        exit(500);
+        return -1;
+        }
     execve(_cgi_path, _argv, _envp);
 	close(pipefd[wr]);
-	std::exit(1);
-    return (set_error(500, "Error 500: Failed to execute binary"));
+    exit(500);
+    return (-1);
 }
 
 int CGI::father_process(int (&pipefd)[2], pid_t pid) {
@@ -108,25 +103,26 @@ int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
         return -1;
-        //TODO throw exception
-        //return (set_error(500, "Error 500: Could not create pipe"));
     }
     pid_t pid = fork();
     if (pid == -1) {
-        //TODO throw exception
-        //return (set_error(500, "Error 500: Could not fork"));
+        return -1;
     }
     else if (pid == 0) {
-        if (this->child_process(pipefd, request_body) == -1)
-            return (-3);
+        if (this->child_process(pipefd, request_body) == -1) {
+            return -1;
+        }
     }
     else {
+        int status;
         *ret_pid = pid;
         close(pipefd[wr]);
+        if (waitpid(pid,&status, WNOHANG) == pid && status == 500) {
+            return -1;
+        }
         return pipefd[rd];
     }
-    //TODO throw exception
-    return (-2);
+    return -1;
 }
 
 Response CGI::run_CGI(std::string request_body) {

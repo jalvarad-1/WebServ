@@ -69,8 +69,10 @@ int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRe
 	
 	// TODO Control de errores
 	int outFd = cgi.exec_cgi(httpRequest.getBody(), &bufferCGI.pid);
-	bufferCGI.out_socket = socket;
-	_bufferedCGIs[outFd] = bufferCGI;
+	if (outFd != -1) {
+		bufferCGI.out_socket = socket;
+		_bufferedCGIs[outFd] = bufferCGI;
+	}
 	std::cerr << "--VOY A DEVOLVER " << outFd << std::endl;
 	return outFd;
 }

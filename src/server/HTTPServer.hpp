@@ -16,6 +16,7 @@ struct BufferRequest {
     std::string     buffer_str;
     int			content_length;
     HTTPRequest		request;
+    short int status;
 } ;
 
 class HTTPServer

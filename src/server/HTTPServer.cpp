@@ -46,6 +46,7 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 	char buffer[SERVER_BUFFER_SIZE] ;
 	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
 	std::cerr << bytes_read << " read from socket " << socket << std::endl;
+	sleep(1);
 	if (bytes_read > 0) {
 		buffer[bytes_read] = '\0';
 		bufferStr.append(buffer);
@@ -198,6 +199,7 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
 		response << iter->first << ": " << iter->second << "\r\n";
 	}
     response << "\r\n";
+	response << httpResponse.string_body;
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
     std::cout << "Cerramos el socket: " << socket << std::endl;

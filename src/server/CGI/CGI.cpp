@@ -55,7 +55,9 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
         return (set_error(500, "Error 500: Could not duplicate pipe descriptor to stdout"));
     if (close(pipefd[wr]) == -1)
         return (set_error(500, "Error 500: Could not close write end of pipe"));
+    std::cerr << "llego" << std::endl;
     execve(_cgi_path, _argv, _envp);
+    std::cerr << "llego despues" << std::endl;
 	close(pipefd[wr]);
 	// std::exit(1);
     exit(1);
@@ -96,7 +98,8 @@ int CGI::execute_binary(std::string request_body) {
     }
     else if (pid == 0) {
         if (this->child_process(pipefd, request_body) == -1)
-            return (-1);
+            exit (1);
+            // return (-1);
     }
     else {
         if (this->father_process(pipefd, pid) == -1)

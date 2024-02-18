@@ -91,6 +91,7 @@ void MultiServer::run() {
 					// }
 				} else {
 					std::cerr << "RECIBIMOS DATOS POR EL cgi FD " << poll_fds[i].fd << std::endl;
+                    sleep (1);
 					if (!cgiManager.readOutput(poll_fds[i].fd)) {
 						poll_fds.erase(poll_fds.begin() + i);						
 					}

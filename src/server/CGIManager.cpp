@@ -11,17 +11,17 @@ bool CGIManager::readOutput( int fd ) {
 	switch (bytes_read) {
 		case -1:
 			std::cerr << "CGI READ DA -1" << std::endl;
-			// sleep(1);
-			return true ;
+			sleep(1);
+			return false ;
 		case 0:
 			std::cerr << "CGI READ DA 0" << std::endl;
-			// sleep(1);
 			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
             std::cout << "Cerramos el fd: " << fd << std::endl;
             close(fd);
 			_bufferedCGIs.erase(fd);
-			return false ;
+			return true ;
 			break ;
+			// sleep(1);
 		default:
 			std::cerr << "CGI READ DA " << bytes_read << std::endl;
 			// sleep(1);
@@ -72,8 +72,23 @@ Response parse_output(std::string output) {
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
 	ResponseCode response_codes;
+	std::stringstream response;
 	Response ret = parse_output(responseStr);
-    send(outSocket, responseStr.c_str(), responseStr.size(), 0);
+
+	if (ret.headers["Content-Type"] == "")
+		ret.headers["Content-Type"] = "text/plain";
+
+	response << "HTTP/1.1 " << ret.response_code << " " << response_codes.get_code_string(ret.response_code) << "\r\n";
+	response << "Content-Type: " << ret.headers["Content-Type"] << "\r\n";
+	response << "Content-Length: " << ret.string_body.size() << "\r\n";
+	for ( std::map<std::string, std::string>::iterator iter = ret.headers.begin(); iter != ret.headers.end(); iter++ ) {
+		response << iter->first << ": " << iter->second << "\r\n";
+	}
+	response << "\r\n";
+	response << ret.string_body;
+	std::cout << "\n---Response---\n" << response.str() << "---" << std::endl;
+    // send(outSocket, responseStr.c_str(), responseStr.size(), 0);
+	send(outSocket, response.str().c_str(), response.str().size(), 0);
 	close(outSocket);
 }
 

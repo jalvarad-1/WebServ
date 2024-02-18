@@ -10,6 +10,10 @@
 #include "CGIManager.hpp"
 
 #define SERVER_BUFFER_SIZE 4200
+#define NEW_REQUEST 0
+#define FILLING_BODY 1
+#define CHUNKED_BODY 2
+#define FULL_REQUEST 3
 
 struct BufferRequest {
 	BufferRequest() ;

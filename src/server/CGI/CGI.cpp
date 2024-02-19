@@ -47,11 +47,12 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     if (close(child_fd[wr]) == -1 || close(pipefd[rd]) == -1 ||
         dup2(child_fd[rd], STDIN_FILENO) == -1 || close(child_fd[rd]) == -1 ||
         dup2(pipefd[wr], STDOUT_FILENO) == -1 || close(pipefd[wr]) == -1 ) {
+		write(pipefd[wr], "Status: 500 Internal Server Error\n", 34);
         exit(500);
         return -1;
         }
     execve(_cgi_path, _argv, _envp);
-	close(pipefd[wr]);
+	write(1, "Status: 500 Internal Server Error\n", 34);
     exit(500);
     return (-1);
 }
@@ -114,12 +115,8 @@ int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
         }
     }
     else {
-        int status;
         *ret_pid = pid;
         close(pipefd[wr]);
-        if (waitpid(pid,&status, WNOHANG) == pid && status == 500) {
-            return -1;
-        }
         return pipefd[rd];
     }
     return -1;

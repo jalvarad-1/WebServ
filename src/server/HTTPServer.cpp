@@ -206,6 +206,5 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
     response << "\r\n";
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
-    std::cout << "Cerramos el socket: " << socket << std::endl;
     return -1;
 }

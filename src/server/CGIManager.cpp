@@ -11,7 +11,7 @@ bool CGIManager::readOutput( int fd ) {
 	switch (bytes_read) {
 		case -1:
 			std::cerr << "CGI READ DA -1" << std::endl;
-			sleep(1);
+			// sleep(1);
 			return false ;
 		case 0:
 			std::cerr << "CGI READ DA 0" << std::endl;

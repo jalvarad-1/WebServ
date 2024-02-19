@@ -1,11 +1,7 @@
 CXX := g++
 NAME := webserv
 # CXXFLAGS := -Wall -Wextra -std=c++98 -g3
-<<<<<<< HEAD
-=======
-# CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -fsanitize=address
->>>>>>> CGI_Response
-CXXFLAGS := -Wall -Wextra -std=c++98 -fsanitize=address
+CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -fsanitize=address
 SRCS =	src/main.cpp\
 		src/server/HTTPServer.cpp\
 		src/server/ListeningSocket.cpp\

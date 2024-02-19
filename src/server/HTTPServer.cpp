@@ -46,7 +46,7 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 	char buffer[SERVER_BUFFER_SIZE] ;
 	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
 	std::cerr << bytes_read << " read from socket " << socket << std::endl;
-	sleep(1);
+	// sleep(1);
 	if (bytes_read > 0) {
 		buffer[bytes_read] = '\0';
 		bufferStr.append(buffer);

@@ -163,10 +163,16 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 				return 0 ;
 			}
 			std::string file_path = Routing::createFilePath(locationRules, httpRequest);
+			int cgi_fd;
 			switch (Routing::typeOfResource(file_path, locationRules)) {
 				case ISCGI:
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
-					return cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
+					cgi_fd = cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
+					if (cgi_fd == -1) {
+						httpResponse.response_code = 500;
+						break;
+					}
+					return cgi_fd;
 				case ISDIR:
 					httpResponse = Routing::processDirPath(file_path, locationRules);//process directory
 					break;
@@ -254,6 +260,5 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
 	response << httpResponse.string_body;
 	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
-    std::cout << "Cerramos el socket: " << socket << std::endl;
     return -1;
 }

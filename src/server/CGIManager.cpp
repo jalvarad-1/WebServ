@@ -78,7 +78,7 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	if (ret.headers["Content-Type"] == "")
 		ret.headers["Content-Type"] = "text/plain";
 
-	response << "HTTP/1.1 " << ret.response_code << " " << response_codes.get_code_string(ret.response_code) << "\r\n";
+	response << "HTTP/1.1 " << ret.headers["Status"] << "\r\n";
 	response << "Content-Type: " << ret.headers["Content-Type"] << "\r\n";
 	response << "Content-Length: " << ret.string_body.size() << "\r\n";
 	for ( std::map<std::string, std::string>::iterator iter = ret.headers.begin(); iter != ret.headers.end(); iter++ ) {

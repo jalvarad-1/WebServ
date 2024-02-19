@@ -59,8 +59,6 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     execve(_cgi_path, _argv, _envp);
     std::cerr << "llego despues" << std::endl;
 	close(pipefd[wr]);
-	// std::exit(1);
-    exit(1);
     return (set_error(500, "Error 500: Failed to execute binary"));
 }
 

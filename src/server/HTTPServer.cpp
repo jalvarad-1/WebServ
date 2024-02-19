@@ -150,7 +150,8 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 				httpResponse.response_code = 405;
 				Routing::errorResponse(httpResponse, locationRules);
 				sendResponse(socket, httpResponse);
-				//close(socket);
+				std::cout << "Cerramos el socket: " << socket << std::endl;
+				close(socket);
 				_bufferedRequests.erase(socket);
 				return 0 ;
 			}

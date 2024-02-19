@@ -6,7 +6,6 @@
 #include "routing/Routing_ns.hpp"
 
 BufferRequest::BufferRequest( void ) {
-	content_length = -1;
 	status = NEW_REQUEST;
 }
 

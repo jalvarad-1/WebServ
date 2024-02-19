@@ -55,11 +55,13 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 }
 
 bool HTTPServer::parseChunk(std::string & bufferStr, std::string & body) {
+	std::cerr << "\n---Chunk---\n" << bufferStr << "---" << std::endl;
 	size_t firstRN = bufferStr.find("\r\n");
 	if (firstRN == std::string::npos)
 		return false ;
 	char *pEnd;
-	double characterN = std::strtod(bufferStr.substr(0, firstRN).c_str(), &pEnd);
+	std::string numString = bufferStr.substr(0, firstRN);
+	double characterN = std::strtod(numString.c_str(), &pEnd);
 	if (*pEnd != '\0') {
 		//TODO throw exception
 	}
@@ -74,7 +76,7 @@ bool HTTPServer::parseChunk(std::string & bufferStr, std::string & body) {
 	}
 	body.append(bufferStr.substr(firstRN, secondRN));
 	secondRN += 2;
-	bufferStr.erase(bufferStr.begin() + firstRN + secondRN);
+	bufferStr.erase(0, firstRN + secondRN);
 	return parseChunk(bufferStr, body) ;
 }
 
@@ -96,14 +98,14 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn) << "---" << std::endl;
 				if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked") {
 					bufferRequest.status = CHUNKED_BODY;
-					bufferStr.erase(bufferStr.begin() + rnrn);
+					bufferStr.erase(0, rnrn);
 					return -1 ;
 				}
 				bufferRequest.content_length = bufferRequest.request.returnContentLength();
 				if ( bufferRequest.content_length < 0 )	
 					return 1 ;
 				bufferRequest.status = FILLING_BODY;
-				bufferStr.erase(bufferStr.begin() + rnrn);
+				bufferStr.erase(0, rnrn);
 				return -1 ;
 			case FILLING_BODY:
 				// COMPROBAMOS EL CONTENT_LENGTH Y ACTUAMOS SEGÚN
@@ -141,20 +143,25 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 			HTTPRequest httpRequest = bufferRequest.request;
 			std::cout << "Uri: " << httpRequest.getURI() << std::endl;
 			LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, httpRequest);
+			Response httpResponse;
 			if (!Routing::isAllowedMethod(httpRequest.getMethod(), locationRules.getAllowedMethods())) {
 				// TODO: devolver response 405
-				// response.response_code = 405;
-				// errorResponse(response, locationRule);
+				std::cerr << "METHOD NOT ALLOWED" << std::endl;
+				httpResponse.response_code = 405;
+				Routing::errorResponse(httpResponse, locationRules);
+				sendResponse(socket, httpResponse);
+				//close(socket);
+				_bufferedRequests.erase(socket);
 				return 0 ;
 			}
 			if (!locationRules.getRedirect().empty()) {
 				// TODO: devolver response 302
 				// response.response_code = 302;
 				// response.headers["Location"] = locationRule.getRedirect();
+				std::cerr << "REDIRECTIOOOOOOOOOOON" << std::endl;
 				return 0 ;
 			}
 			std::string file_path = Routing::createFilePath(locationRules, httpRequest);
-			Response httpResponse;
 			switch (Routing::typeOfResource(file_path, locationRules)) {
 				case ISCGI:
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <cstdlib>
+
 #define wr 1
 #define rd 0
 

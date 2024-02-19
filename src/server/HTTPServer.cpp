@@ -55,7 +55,7 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 }
 
 bool HTTPServer::parseChunk(std::string & bufferStr, std::string & body) {
-	std::cerr << "\n---Chunk---\n" << bufferStr << "---" << std::endl;
+	//std::cerr << "\n---Chunk---\n" << bufferStr << "---" << std::endl;
 	size_t firstRN = bufferStr.find("\r\n");
 	if (firstRN == std::string::npos)
 		return false ;
@@ -172,6 +172,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 						httpResponse.response_code = 500;
 						break;
 					}
+					_bufferedRequests.erase(socket);
 					return cgi_fd;
 				case ISDIR:
 					httpResponse = Routing::processDirPath(file_path, locationRules);//process directory

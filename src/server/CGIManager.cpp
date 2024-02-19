@@ -75,12 +75,15 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	std::stringstream response;
 	Response ret = parse_output(responseStr);
 
-	if (ret.headers["Content-Type"] == "")
+	// if (ret.headers["Content-Type"] == "")
 		ret.headers["Content-Type"] = "text/plain";
 
 	response << "HTTP/1.1 " << ret.headers["Status"] << "\r\n";
 	response << "Content-Type: " << ret.headers["Content-Type"] << "\r\n";
 	response << "Content-Length: " << ret.string_body.size() << "\r\n";
+	ret.headers.erase("Status");
+	ret.headers.erase("Content-Type");
+	ret.headers.erase("Content-Length");
 	for ( std::map<std::string, std::string>::iterator iter = ret.headers.begin(); iter != ret.headers.end(); iter++ ) {
 		response << iter->first << ": " << iter->second << "\r\n";
 	}

@@ -43,18 +43,35 @@ void CGI::parse_output(std::string output) {
 }
 
 int CGI::child_process(int (&pipefd)[2], std::string request_body) {
-    int child_fd[2];
-    pipe(child_fd);
-    write(child_fd[wr], request_body.c_str(), request_body.size());
-    if (close(child_fd[wr]) == -1 || close(pipefd[rd]) == -1 ||
-        dup2(child_fd[rd], STDIN_FILENO) == -1 || close(child_fd[rd]) == -1 ||
+    // int child_fd[2];
+    // pipe(child_fd);
+	int fd = open("waifu", O_WRONLY | O_CREAT);
+	perror("open");
+	std::cerr << "fd: " << fd << std::endl;
+	std::cerr << "ENTRO A ESCRIBIR" << std::endl;
+	write(fd, request_body.c_str(), request_body.size());
+	close(fd);
+	//write(child_fd[wr], request_body.c_str(), request_body.size());
+	fd = open("waifu", O_RDONLY);
+	std::cerr << "fd: " << fd << std::endl;
+	std::cerr << "SALGO DE ESCRIBIR" << std::endl;
+    // if (close(child_fd[wr]) == -1 || close(pipefd[rd]) == -1 ||
+    //     dup2(child_fd[rd], STDIN_FILENO) == -1 || close(child_fd[rd]) == -1 ||
+    //     dup2(pipefd[wr], STDOUT_FILENO) == -1 || close(pipefd[wr]) == -1 ) {
+	// 	write(pipefd[wr], "Status: 500 Internal Server Error\r\n\r\n", 37);
+    //     exit(500);
+    //     return -1;
+    // }
+	std::cerr << dup2(fd, STDIN_FILENO) << std::endl;
+    if (close(pipefd[rd]) == -1 ||
         dup2(pipefd[wr], STDOUT_FILENO) == -1 || close(pipefd[wr]) == -1 ) {
-		write(pipefd[wr], "Status: 500 Internal Server Error\n", 34);
+		write(pipefd[wr], "Status: 500 Internal Server Error\r\n\r\n", 37);
         exit(500);
         return -1;
-        }
+    }
+	std::cerr << "pepe"  << std::endl;
     execve(_cgi_path, _argv, _envp);
-	write(1, "Status: 500 Internal Server Error\n", 34);
+	write(1, "Status: 500 Internal Server Error\r\n\r\n", 37);
     exit(500);
     return (-1);
 }

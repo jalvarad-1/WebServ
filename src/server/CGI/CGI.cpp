@@ -93,7 +93,8 @@ int CGI::execute_binary(std::string request_body) {
     }
     else if (pid == 0) {
         if (this->child_process(pipefd, request_body) == -1)
-            return (-1);
+            exit (1);
+            // return (-1);
     }
     else {
         if (this->father_process(pipefd, pid) == -1)

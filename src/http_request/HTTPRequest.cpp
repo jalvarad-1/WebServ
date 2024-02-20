@@ -15,13 +15,14 @@ void trim(std::string& s)
 }
 
 HTTPRequest::HTTPRequest(void) {
-
+	_body_file_fd = 0;
 }
 
 HTTPRequest::HTTPRequest(const std::string& raw_request)
 {
     if (!parse(raw_request))
         _error_message = "Failed to parse the request.";
+	_body_file_fd = 0;
 }
 
 bool HTTPRequest::methodAcceptsBody() const

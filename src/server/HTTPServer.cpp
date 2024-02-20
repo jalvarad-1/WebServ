@@ -5,6 +5,10 @@
 #include <ctime>
 #include "routing/Routing_ns.hpp"
 
+int HTTPServer::temp_file_counter = 0;
+
+std::string HTTPServer::temp_file_path = "./waifu";
+
 BufferRequest::BufferRequest( void ) {
 	status = NEW_REQUEST;
 }
@@ -51,17 +55,23 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 		buffer[bytes_read] = '\0';
 		bufferStr.append(buffer);
 	}
+	//std::cout << "---AFTER SUCCESSFUL READ BUFFERSTR LOOKS LIKE: ---\n" << bufferStr << "\n---" << std::endl;
 	return bytes_read;
 }
 
-bool HTTPServer::parseChunk(std::string & bufferStr, std::string & body) {
-	//std::cerr << "\n---Chunk---\n" << bufferStr << "---" << std::endl;
+bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd) {
+	//std::cout << "\n---I'm going to read from---\n" << bufferStr << "\n---" << std::endl;
 	size_t firstRN = bufferStr.find("\r\n");
 	if (firstRN == std::string::npos)
 		return false ;
 	char *pEnd;
-	std::string numString = bufferStr.substr(0, firstRN);
-	double characterN = std::strtod(numString.c_str(), &pEnd);
+	std::string auxStr = bufferStr.substr(0, firstRN);
+	std::cout << "Number is " << auxStr << std::endl;
+	double characterN;
+	/// NUNCA FUE 8000 /// curl -H "Transfer-Encoding: chunked" -d @input http://localhost:8000/directory/youpi.bla -vvv
+	characterN = static_cast<double>(std::strtol(auxStr.c_str(), &pEnd, 16));
+	std::cout << "NUMBER IS " << characterN << std::endl;
+	///
 	if (*pEnd != '\0') {
 		//TODO throw exception
 	}
@@ -71,13 +81,24 @@ bool HTTPServer::parseChunk(std::string & bufferStr, std::string & body) {
 	size_t secondRN = bufferStr.find("\r\n", firstRN);
 	if (secondRN == std::string::npos)
 		return false ;
+	std::cout << "YAY I FOUND THE END" << std::endl;
 	if (static_cast<double>(secondRN) != characterN) {
 		//TODO throw exception
 	}
-	body.append(bufferStr.substr(firstRN, secondRN));
+	//body.append(bufferStr.substr(firstRN, secondRN));
+	auxStr = bufferStr.substr(firstRN, secondRN - firstRN);
+	if (write(wr_fd, auxStr.c_str(), auxStr.size()) != static_cast<int>(auxStr.size())) {
+		//TODO throw exception
+	}
 	secondRN += 2;
-	bufferStr.erase(0, firstRN + secondRN);
-	return parseChunk(bufferStr, body) ;
+	bufferStr.erase(0, secondRN);
+	return parseChunk(bufferStr, wr_fd) ;
+}
+
+std::string HTTPServer::get_temp_file() {
+	std::stringstream ret;
+	ret << temp_file_path << "_" << temp_file_counter++;
+	return ret.str();
 }
 
 int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
@@ -99,6 +120,17 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked") {
 					bufferRequest.status = CHUNKED_BODY;
 					bufferStr.erase(0, rnrn);
+					bufferRequest.request._body_file_name = get_temp_file();
+					bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+					if (bufferRequest.request._body_file_fd == -1) {
+						std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
+						perror("open");
+						std::exit(1);
+					}
+					if (parseChunk(bufferStr, bufferRequest.request._body_file_fd))  {
+						close(bufferRequest.request._body_file_fd);
+						return 1 ;
+					}
 					return -1 ;
 				}
 				bufferRequest.content_length = bufferRequest.request.returnContentLength();
@@ -106,18 +138,39 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 					return 1 ;
 				bufferRequest.status = FILLING_BODY;
 				bufferStr.erase(0, rnrn);
+				bufferRequest.request._body_file_name = get_temp_file();
+				bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+				if (bufferRequest.request._body_file_fd == -1) {
+					std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
+					perror("open");
+					std::exit(1);
+				}
+				if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
+					//TODO throw exception algo ha ido muy mal
+				}
+				bufferRequest.content_length -= bufferStr.size();
+				bufferStr.clear();
+				if (bufferRequest.content_length <= 0) {
+					close(bufferRequest.request._body_file_fd);
+					return 1;
+				}
 				return -1 ;
 			case FILLING_BODY:
 				// COMPROBAMOS EL CONTENT_LENGTH Y ACTUAMOS SEGÚN
-				if ( static_cast<int>(bufferStr.size()) < bufferRequest.content_length ) {
-					return -1 ;
+				if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
+					//TODO throw exception algo ha ido muy mal
 				}
-				bufferRequest.request._body = bufferStr;
-				std::cout << "\n---Body---\n" << bufferStr << "---" << std::endl;
-				return 1 ;
+				bufferRequest.content_length -= bufferStr.size();
+				bufferStr.clear();
+				if (bufferRequest.content_length <= 0) {
+					close(bufferRequest.request._body_file_fd);
+					return 1;
+				}
+				return -1 ;
 			case CHUNKED_BODY:
 				// BUSCAMOS DOS RN Y APPENDEAMOS AL BODY DESPUÉS DE PASAR POR UNA FUNCIÓN DE PARSEO
-				if (parseChunk(bufferStr, bufferRequest.request._body))  {
+				if (parseChunk(bufferStr, bufferRequest.request._body_file_fd))  {
+					close(bufferRequest.request._body_file_fd);
 					return 1 ;
 				}
 				return -1 ;
@@ -167,6 +220,15 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 			switch (Routing::typeOfResource(file_path, locationRules)) {
 				case ISCGI:
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
+					if (httpRequest._body_file_name.empty()) {
+						httpRequest._body_file_name = get_temp_file();
+						httpRequest._body_file_fd = open(httpRequest._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+						if (httpRequest._body_file_fd == -1) {
+							std::cerr << "UNABLE TO OPEN FILE " << httpRequest._body_file_name << std::endl;
+							perror("open");
+							std::exit(1);
+						}
+					}
 					cgi_fd = cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
 					if (cgi_fd == -1) {
 						httpResponse.response_code = 500;

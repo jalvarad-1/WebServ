@@ -31,6 +31,8 @@ class HTTPServer
         ListeningSocket * _socket;
         ServerConfig _serverConfig;
 		std::map<int, BufferRequest> _bufferedRequests ;
+		static std::string temp_file_path;
+		static int temp_file_counter;
 
     public:
         HTTPServer(int domain, int service, int protocol,
@@ -48,6 +50,8 @@ class HTTPServer
 		int handleEvent( int socket, CGIManager & cgiManager ) ;
 		int handleRead( int socket, BufferRequest & bufferRequest ) ;
 		ssize_t readFromFd( int socket, std::string & bufferStr ) ;
-		bool parseChunk(std::string & bufferStr, std::string & body);
+		bool parseChunk(std::string & bufferStr, int wr_fd);
+
+		std::string get_temp_file();
 };
 #endif

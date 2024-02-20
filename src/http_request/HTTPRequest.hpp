@@ -17,6 +17,8 @@ class HTTPRequest {
         std::string _path_info;
 
     public:
+		std::string _body_file_name;
+		int			_body_file_fd;
         std::string _body;
         HTTPRequest(void);
         HTTPRequest(const std::string& raw_request);

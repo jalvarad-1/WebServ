@@ -78,7 +78,7 @@ void MultiServer::run() {
 						}
 						continue ;
 					case CGI_FD:
-						std::cerr << "RECIBIMOS DATOS POR EL cgi FD " << poll_fds[i].fd << std::endl;
+						// std::cerr << "RECIBIMOS DATOS POR EL cgi FD " << poll_fds[i].fd << std::endl;
 						if (!cgiManager.readOutput(poll_fds[i].fd)) {
 							std::cerr << "VOY A BORRAR EL cgi FD " << poll_fds[i].fd << std::endl;
 							fd_index.erase(poll_fds[i].fd);

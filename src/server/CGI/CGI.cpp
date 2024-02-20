@@ -42,19 +42,19 @@ void CGI::parse_output(std::string output) {
         ret.string_body = output;
 }
 
-int CGI::child_process(int (&pipefd)[2], std::string request_body) {
+int CGI::child_process(int (&pipefd)[2], int rd_fd) {
     // int child_fd[2];
     // pipe(child_fd);
-	int fd = open("waifu", O_WRONLY | O_CREAT);
-	perror("open");
-	std::cerr << "fd: " << fd << std::endl;
-	std::cerr << "ENTRO A ESCRIBIR" << std::endl;
-	write(fd, request_body.c_str(), request_body.size());
-	close(fd);
+	// int fd = open("waifu", O_WRONLY | O_CREAT);
+	// perror("open");
+	// std::cerr << "fd: " << fd << std::endl;
+	// std::cerr << "ENTRO A ESCRIBIR" << std::endl;
+	// write(fd, request_body.c_str(), request_body.size());
+	// close(fd);
 	//write(child_fd[wr], request_body.c_str(), request_body.size());
-	fd = open("waifu", O_RDONLY);
-	std::cerr << "fd: " << fd << std::endl;
-	std::cerr << "SALGO DE ESCRIBIR" << std::endl;
+	// fd = open("waifu", O_RDONLY);
+	// std::cerr << "fd: " << fd << std::endl;
+	// std::cerr << "SALGO DE ESCRIBIR" << std::endl;
     // if (close(child_fd[wr]) == -1 || close(pipefd[rd]) == -1 ||
     //     dup2(child_fd[rd], STDIN_FILENO) == -1 || close(child_fd[rd]) == -1 ||
     //     dup2(pipefd[wr], STDOUT_FILENO) == -1 || close(pipefd[wr]) == -1 ) {
@@ -62,8 +62,7 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     //     exit(500);
     //     return -1;
     // }
-	std::cerr << dup2(fd, STDIN_FILENO) << std::endl;
-    if (close(pipefd[rd]) == -1 ||
+    if (dup2(rd_fd, STDIN_FILENO) == -1 || close(pipefd[rd]) == -1 ||
         dup2(pipefd[wr], STDOUT_FILENO) == -1 || close(pipefd[wr]) == -1 ) {
 		write(pipefd[wr], "Status: 500 Internal Server Error\r\n\r\n", 37);
         exit(500);
@@ -109,8 +108,9 @@ int CGI::execute_binary(std::string request_body) {
         return (set_error(500, "Error 500: Could not fork"));
     }
     else if (pid == 0) {
-        if (this->child_process(pipefd, request_body) == -1)
-            exit (1);
+		(void)request_body;
+        // if (this->child_process(pipefd, request_body) == -1)
+        //     exit (1);
             // return (-1);
     }
     else {
@@ -120,17 +120,25 @@ int CGI::execute_binary(std::string request_body) {
     return (0);
 }
 
-int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
+int CGI::exec_cgi(std::string body_filename, pid_t *ret_pid) {
+	int rd_fd = open(body_filename.c_str(), O_RDONLY);
+	if (rd_fd == -1) {
+		std::cerr << "ERROR WHEN TRYING TO OPEN " << body_filename << std::endl;
+		perror("open");
+		return -1;
+	}
     int pipefd[2];
     if (pipe(pipefd) == -1) {
+		perror("pipe");
         return -1;
     }
     pid_t pid = fork();
     if (pid == -1) {
+		perror("fork");
         return -1;
     }
     else if (pid == 0) {
-        if (this->child_process(pipefd, request_body) == -1) {
+        if (this->child_process(pipefd, rd_fd) == -1) {
             return -1;
         }
     }

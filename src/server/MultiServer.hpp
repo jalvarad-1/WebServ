@@ -17,6 +17,8 @@
 struct fd_info{// 
     short int fd_type;//listening socket / connection  / cgi_fd
     HTTPServer* server;
+    fd_info(){};
+    fd_info(short int fd_type, HTTPServer* server) : fd_type(fd_type), server(server) {}
 };
 
 class MultiServer
@@ -33,5 +35,7 @@ class MultiServer
         MultiServer(const std::vector<ServerConfig>& serverConfigs);
         ~MultiServer();
         void run();
+        struct pollfd create_pollfd(int fd);
+        void erase_pollfd(int i);
 };
 #endif

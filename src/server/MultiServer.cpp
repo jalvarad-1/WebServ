@@ -5,32 +5,24 @@ MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
     {
         int port = it->getPort();
         u_long interface = it->getHost();
-
-        struct fd_status port_status;
-        port_status.server = new HTTPServer(AF_INET, SOCK_STREAM, interface, port, INADDR_ANY, 0, *it);
-		waifu.push_back(port_status.server);
 		struct fd_info index_entry;
-		index_entry.server = port_status.server;
+		index_entry.server = new HTTPServer(AF_INET, SOCK_STREAM, interface, port, INADDR_ANY, 0, *it);
 		index_entry.fd_type = LISTENING_PORT;
         struct pollfd pfd;
-        memset(&pfd, 0, sizeof(pfd));
-        pfd.fd = port_status.server->get_socket()->get_sock();  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
+        pfd.fd = index_entry.server->get_socket()->get_sock();  // Asumiendo que get_socket() devuelve un puntero a una clase con el método get_sock()
 		fd_index[pfd.fd] = index_entry;
         pfd.events = POLLIN;
         pfd.revents = 0;
-        port_status.port = true;
-        port_status.status = 0;
         poll_fds.push_back(pfd);
-        status.push_back(port_status);
     }
 }
 
 MultiServer::~MultiServer() {
-    for (std::vector<fd_status>::iterator it = status.begin(); it != status.end(); ++it)
-    {
-        HTTPServer* server = it->server;
-        delete server;
-    }
+    for (std::map<int,fd_info>::iterator it = fd_index.begin(); it != fd_index.end(); ++it) {
+		if (it->second.fd_type == LISTENING_PORT) {
+			delete it->second.server ;
+		}
+	}
 }
 
 void MultiServer::run() {
@@ -104,13 +96,7 @@ void MultiServer::run() {
 std::vector<struct pollfd> MultiServer::get_fds() {
     return poll_fds;
 }
-std::vector<struct fd_status> MultiServer::get_status() {
-    return status;
-}
+
 void MultiServer::set_fds(struct pollfd new_poll_fd) {
     poll_fds.push_back(new_poll_fd);
 }
-void MultiServer::set_status(struct fd_status new_status) {
-    status.push_back(new_status);
-}  
-

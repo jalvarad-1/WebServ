@@ -59,50 +59,6 @@ int CGI::child_process(int (&pipefd)[2], std::string request_body) {
     return (-1);
 }
 
-int CGI::father_process(int (&pipefd)[2], pid_t pid) {
-    ssize_t bytesRead;
-    char buffer[4096];
-    std::stringstream output;
-    if (close(pipefd[1]) == -1)
-        return (set_error(500, "Error 500: Could not close write end of pipe"));
-    while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer))) > 0)
-        output.write(buffer, bytesRead);
-    if (bytesRead < 0) {
-        close(pipefd[0]);
-        return (set_error(500, "Error 500: Could not read from pipe"));
-    }
-    int status;
-    if (waitpid(pid, &status, 0) == -1) {
-        close(pipefd[0]);
-        return (set_error(500, "Error 500: Could not wait for child process"));
-    }
-    // ret.body = output.str();
-    parse_output(output.str());
-    close(pipefd[0]);
-    return (0);
-}
-
-int CGI::execute_binary(std::string request_body) {
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-        return (set_error(500, "Error 500: Could not create pipe"));
-    }
-    pid_t pid = fork();
-    if (pid == -1) {
-        return (set_error(500, "Error 500: Could not fork"));
-    }
-    else if (pid == 0) {
-        if (this->child_process(pipefd, request_body) == -1)
-            exit (1);
-            // return (-1);
-    }
-    else {
-        if (this->father_process(pipefd, pid) == -1)
-            return (-1);
-    }
-    return (0);
-}
-
 int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -123,15 +79,6 @@ int CGI::exec_cgi(std::string request_body, pid_t *ret_pid) {
         return pipefd[rd];
     }
     return -1;
-}
-
-Response CGI::run_CGI(std::string request_body) {
-    ret.response_code = 200;
-    ret.string_body = "OK";
-    ret.headers["Content-Type"] = "text/html";
-
-    this->execute_binary(request_body);
-    return ret;
 }
 
 void CGI::set_env(std::map<std::string, std::string> map) {

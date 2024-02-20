@@ -137,25 +137,6 @@ void    Routing::errorResponse(Response & response, LocationRules & locationRule
     }
 }
 
-Response    Routing::processCGI(std::string file_path, std::string binary_path, HTTPRequest & httpRequest)
-{
-    Response response;
-
-    std::map<std::string, std::string> env;
-    env["REQUEST_METHOD"] = httpRequest.getMethod();
-    env["SERVER_PROTOCOL"] = httpRequest.getVersion();
-    env["PATH_INFO"] = httpRequest.getPathInfo(); // TODO Review the meaning of PATH_INFO
-
-    std::vector<std::string> args;
-    
-    CGI cgi(file_path);
-    args.push_back(binary_path);
-
-    cgi.set_env(env);
-    cgi.set_args(args);
-    return cgi.run_CGI(httpRequest.getBody());;
-}
-
 std::string Routing::createFilePath(LocationRules locationRule, HTTPRequest& httpRequest) {
     std::string uri = httpRequest.getURI();
     std::string cgi_extension = locationRule.getCgiExtension();
@@ -173,46 +154,4 @@ std::string Routing::createFilePath(LocationRules locationRule, HTTPRequest& htt
 
     std::string final_path = locationRule.getRoot() + removeKeyValue(locationRule.getKeyValue(), uri);
     return final_path;
-}
-
-Response    Routing::determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule)
-{
-    std::string file_path;
-    std::string body;
-    Response response;
-    
-    if (!isAllowedMethod(httpRequest.getMethod(), locationRule.getAllowedMethods())) {
-        response.response_code = 405;
-        errorResponse(response, locationRule);
-        return response;
-    }
-    if (!locationRule.getRedirect().empty()) {
-        response.response_code = 302;
-        response.headers["Location"] = locationRule.getRedirect();
-        return response;
-    }
-    std::cout << "URI debbug: " << httpRequest.getURI() << std::endl;
-    file_path = createFilePath(locationRule, httpRequest);
-    switch(typeOfResource(file_path, locationRule))
-    {
-        case ISDIR:
-            response = processDirPath(file_path, locationRule);//process directory
-            break;
-        case ISCGI:
-            response = processCGI(locationRule.getCgiPass(), file_path , httpRequest);
-            break;
-        case ISFILE:
-                response = processFilePath(file_path);//process file        
-            break;
-        default:
-            response.response_code = 404;
-    }
-    errorResponse(response, locationRule);
-    return response;
-}
-
-Response        Routing::returnResource(ServerConfig serverConfig, HTTPRequest httpRequest)
-{
-    LocationRules location = determineResourceLocation(serverConfig, httpRequest);
-    return determinePathRequestedResource(httpRequest, location);
 }

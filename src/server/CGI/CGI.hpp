@@ -17,16 +17,13 @@ private:
     char **_argv;
     Response ret;
     char* _cgi_path;
-    int execute_binary(std::string request_body);
     int set_error(int code, std::string body);
     int child_process(int (&pipefd)[2], std::string request_body);
-    int father_process(int (&pipefd)[2], pid_t pid);
     void parse_output(std::string output);
 
 public:
     CGI(std::string cgi_path);
     ~CGI();
-    Response run_CGI(std::string request_body);
     void set_env(std::map<std::string, std::string> map);
     void set_args(std::vector<std::string> vec);
     int exec_cgi(std::string request_body, pid_t *pid);

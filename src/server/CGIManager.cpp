@@ -13,15 +13,15 @@ bool CGIManager::readOutput( int fd ) {
 			std::cerr << "CGI READ DA -1" << std::endl;
 			// sleep(1);
 			return false ;
-		case 0:
-			std::cerr << "CGI READ DA 0" << std::endl;
-			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
-            std::cout << "Cerramos el fd: " << fd << std::endl;
-            close(fd);
-			_bufferedCGIs.erase(fd);
-			return true ;
-			break ;
-			// sleep(1);
+		//case 0:
+		//	std::cerr << "CGI READ DA 0" << std::endl;
+		//	returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
+        //    std::cout << "Cerramos el fd: " << fd << std::endl;
+        //    close(fd);
+		//	_bufferedCGIs.erase(fd);
+		//	return true ;
+		//	break ;
+		//	// sleep(1);
 		default:
 			// std::cerr << "CGI READ DA " << bytes_read << std::endl;
 			// sleep(1);
@@ -39,6 +39,7 @@ bool CGIManager::readOutput( int fd ) {
 				}
 				returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
 				_bufferedCGIs.erase(fd);
+				close(fd);
 				return false ;
 			}
 			std::cerr << "PROGRAMA VIVO" << std::endl;
@@ -92,7 +93,8 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	// std::cout << "\n---Response---\n" << response.str() << "---" << std::endl;
     // send(outSocket, responseStr.c_str(), responseStr.size(), 0);
 	send(outSocket, response.str().c_str(), response.str().size(), 0);
-	std::cout << "Cerramos el socket: " << outSocket << std::endl;
+	//shutdown(outSocket, SHUT_RDWR);
+	//std::cout << "Cerramos el socket maria: " << outSocket << std::endl;
 	close(outSocket);
 }
 

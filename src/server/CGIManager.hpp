@@ -16,6 +16,7 @@ struct BufferCGI {
     std::string     buffer_str;
 	pid_t			pid;
     int				out_socket;
+	std::string		in_body_filename;
 } ;
 
 class CGIManager {
@@ -24,12 +25,11 @@ class CGIManager {
 
 		bool readOutput(int fd) ;
 		int executeCGI(std::string cgi_pass, std::string binary_path, HTTPRequest & httpRequest, int socket) ;
-
+		void eraseFile(std::string & fileName);
 
 	protected:
 
 	private:
-
 		std::map<int, BufferCGI> _bufferedCGIs ;
 		void returnResponse(std::string & responseStr, int outSocket) ;
 

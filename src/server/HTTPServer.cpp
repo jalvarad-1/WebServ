@@ -10,6 +10,7 @@ int HTTPServer::temp_file_counter = 0;
 std::string HTTPServer::temp_file_path = "./waifu";
 
 BufferRequest::BufferRequest( void ) {
+	content_length = 0;
 	status = NEW_REQUEST;
 }
 
@@ -59,7 +60,7 @@ ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 	return bytes_read;
 }
 
-bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd) {
+bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_length) {
 	//std::cout << "\n---I'm going to read from---\n" << bufferStr << "\n---" << std::endl;
 	size_t firstRN = bufferStr.find("\r\n");
 	if (firstRN == std::string::npos)
@@ -87,12 +88,14 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd) {
 	}
 	//body.append(bufferStr.substr(firstRN, secondRN));
 	auxStr = bufferStr.substr(firstRN, secondRN - firstRN);
-	if (write(wr_fd, auxStr.c_str(), auxStr.size()) != static_cast<int>(auxStr.size())) {
+	int writtenBytes = write(wr_fd, auxStr.c_str(), auxStr.size());
+	if ( writtenBytes != static_cast<int>(auxStr.size())) {
 		//TODO throw exception
 	}
+	*content_length += writtenBytes;
 	secondRN += 2;
 	bufferStr.erase(0, secondRN);
-	return parseChunk(bufferStr, wr_fd) ;
+	return parseChunk(bufferStr, wr_fd, content_length) ;
 }
 
 std::string HTTPServer::get_temp_file() {
@@ -106,6 +109,7 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 	ssize_t bytes_read = readFromFd(socket, bufferStr);
 	if (bytes_read > 0) {
 		size_t rnrn;
+		LocationRules locationRules;
 		switch (bufferRequest.status) {
 			case NEW_REQUEST:
 				// BUSCAMOS RNRN Y GENERAMOS LA NUEVA REQUEST
@@ -121,15 +125,30 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 					bufferRequest.status = CHUNKED_BODY;
 					bufferStr.erase(0, rnrn);
 					bufferRequest.request._body_file_name = get_temp_file();
+					std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
 					bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 					if (bufferRequest.request._body_file_fd == -1) {
 						std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
 						perror("open");
 						std::exit(1);
 					}
-					if (parseChunk(bufferStr, bufferRequest.request._body_file_fd))  {
+					if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length ))  {
+						if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
+							Response httpResponse;
+							httpResponse.response_code = 413;
+							Routing::errorResponse(httpResponse, locationRules);
+							sendResponse(socket, httpResponse);
+							return 0;
+						}
 						close(bufferRequest.request._body_file_fd);
 						return 1 ;
+					}
+					if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
+						Response httpResponse;
+						httpResponse.response_code = 413;
+						Routing::errorResponse(httpResponse, locationRules);
+						sendResponse(socket, httpResponse);
+						return 0;
 					}
 					return -1 ;
 				}
@@ -138,7 +157,16 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 					return 1 ;
 				bufferRequest.status = FILLING_BODY;
 				bufferStr.erase(0, rnrn);
+				locationRules = Routing::determineResourceLocation(_serverConfig, bufferRequest.request);
+				if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
+					Response httpResponse;
+					httpResponse.response_code = 413;
+					Routing::errorResponse(httpResponse, locationRules);
+					sendResponse(socket, httpResponse);
+					return 0;
+				}
 				bufferRequest.request._body_file_name = get_temp_file();
+				std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
 				bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 				if (bufferRequest.request._body_file_fd == -1) {
 					std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
@@ -169,7 +197,7 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				return -1 ;
 			case CHUNKED_BODY:
 				// BUSCAMOS DOS RN Y APPENDEAMOS AL BODY DESPUÉS DE PASAR POR UNA FUNCIÓN DE PARSEO
-				if (parseChunk(bufferStr, bufferRequest.request._body_file_fd))  {
+				if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
 					close(bufferRequest.request._body_file_fd);
 					return 1 ;
 				}
@@ -202,6 +230,9 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 				std::cerr << "METHOD NOT ALLOWED" << std::endl;
 				httpResponse.response_code = 405;
 				Routing::errorResponse(httpResponse, locationRules);
+				if (!httpRequest._body_file_name.empty()) {
+					cgiManager.eraseFile(httpRequest._body_file_name);
+				}
 				sendResponse(socket, httpResponse);
 				std::cout << "Cerramos el socket: " << socket << std::endl;
 				close(socket);
@@ -222,6 +253,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
 					if (httpRequest._body_file_name.empty()) {
 						httpRequest._body_file_name = get_temp_file();
+						std::cerr << "VOY A CREAR EL ARCHIVO " << httpRequest._body_file_name << " PORQUE MI CGI NO TIENE BODY" << std::endl;
 						httpRequest._body_file_fd = open(httpRequest._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 						if (httpRequest._body_file_fd == -1) {
 							std::cerr << "UNABLE TO OPEN FILE " << httpRequest._body_file_name << std::endl;
@@ -245,6 +277,9 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 				default:
 					httpResponse.response_code = 404; // TODO send response 404
 			}
+		if (!httpRequest._body_file_name.empty()) {
+			cgiManager.eraseFile(httpRequest._body_file_name);
+		}
 		sendResponse(socket, httpResponse);
 		std::cout << "Cerramos el socket: " << socket << std::endl;
     	close(socket);

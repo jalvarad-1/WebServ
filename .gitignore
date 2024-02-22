@@ -9,3 +9,4 @@ requirements.txt
 log.txt
 output.txt
 macos_cgi_tester
+input

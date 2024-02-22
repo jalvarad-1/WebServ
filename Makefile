@@ -40,11 +40,11 @@ echo:
 	echo $(OBJS)
 
 clean:
-	@rm -f $(NAME)
-	@echo "\033[0;33mCleaning executable\033[0m"
+	@rm -f $(OBJS)
+	@echo "\033[0;33mCleaning objects\033[0m"
 
 fclean: clean
-	@rm -f $(OBJS)
+	@rm -f $(NAME)
 	@echo "\033[0;35mFclean done\033[0m"
 
 re: fclean all

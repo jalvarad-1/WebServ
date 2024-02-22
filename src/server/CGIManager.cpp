@@ -1,34 +1,43 @@
 #include "CGIManager.hpp"
 #include "response_code/ResponseCode.hpp"
+#include <signal.h>
+#include <cstdio>
+
+void CGIManager::eraseFile(std::string & fileName) {
+	if (std::remove(fileName.c_str()) != 0)
+		std::cerr << "ACHTUNG! NO HE PODIDO BORRAR EL ARCHIVO\"" << fileName << "\"!" << std::endl;
+}
 
 bool CGIManager::readOutput( int fd ) {
 	char buffer[CGI_BUFFER_SIZE] ;
 	ssize_t bytes_read ;
 	// std::cerr << "LLEGO AL READ" << std::endl;
 	bytes_read = read(fd, buffer, CGI_BUFFER_SIZE - 1);
-	// bytes_read = recv(fd, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
-	// std::cerr << bytes_read << " bytes read from fd " << fd << std::endl;
+	// std::cerr << bytes_read << " bytes read from cgi fd " << fd << std::endl;
 	switch (bytes_read) {
 		case -1:
 			std::cerr << "CGI READ DA -1" << std::endl;
+			kill(_bufferedCGIs[fd].pid, SIGKILL);
+			_bufferedCGIs[fd].buffer_str = "Status: 500 Internal Server Error\r\n\r\n";
+			eraseFile(_bufferedCGIs[fd].in_body_filename);
+			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
+			close(_bufferedCGIs[fd].out_socket);
+			_bufferedCGIs.erase(fd);
 			// sleep(1);
 			return false ;
-		//case 0:
-		//	std::cerr << "CGI READ DA 0" << std::endl;
-		//	returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
-        //    std::cout << "Cerramos el fd: " << fd << std::endl;
-        //    close(fd);
-		//	_bufferedCGIs.erase(fd);
-		//	return true ;
-		//	break ;
-		//	// sleep(1);
+		case 0:
+			if (waitpid(_bufferedCGIs[fd].pid, NULL, WNOHANG) == 0) {
+				return true;
+			}
+			eraseFile(_bufferedCGIs[fd].in_body_filename);
+			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
+			_bufferedCGIs.erase(fd);
+			close(fd);
+			return false ;
 		default:
 			// std::cerr << "CGI READ DA " << bytes_read << std::endl;
 			// sleep(1);
 			buffer[bytes_read] = '\0';
-			// if ( readFromBuffer(_bufferedCGIs[fd], buffer) )
-			// 	return true ;
-			// sendResponse(fd, _bufferedCGIs[fd].request);
 			_bufferedCGIs[fd].buffer_str.append(buffer);
 			if (waitpid(_bufferedCGIs[fd].pid, NULL, WNOHANG) != 0) {
 				std::cerr << "PROGRAMA MUERTO" << std::endl;
@@ -37,12 +46,13 @@ bool CGIManager::readOutput( int fd ) {
 					_bufferedCGIs[fd].buffer_str.append(buffer);
 					bytes_read = read(fd, buffer, CGI_BUFFER_SIZE - 1);
 				}
+				eraseFile(_bufferedCGIs[fd].in_body_filename);
 				returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
 				_bufferedCGIs.erase(fd);
 				close(fd);
 				return false ;
 			}
-			std::cerr << "PROGRAMA VIVO" << std::endl;
+			// std::cerr << "PROGRAMA VIVO" << std::endl;
 			return true ;
 	}
 }
@@ -71,12 +81,12 @@ Response parse_output(std::string output) {
 
 
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
-	std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
+	// std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
 	ResponseCode response_codes;
 	std::stringstream response;
 	Response ret = parse_output(responseStr);
 
-	// if (ret.headers["Content-Type"] == "")
+	//if (ret.headers["Content-Type"] == "")
 		ret.headers["Content-Type"] = "text/plain";
 
 	response << "HTTP/1.1 " << ret.headers["Status"] << "\r\n";
@@ -117,8 +127,11 @@ int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRe
 	int outFd = cgi.exec_cgi(httpRequest._body_file_name, &bufferCGI.pid);
 	if (outFd != -1) {
 		bufferCGI.out_socket = socket;
+		bufferCGI.in_body_filename = httpRequest._body_file_name;
 		_bufferedCGIs[outFd] = bufferCGI;
+	} else {
+		eraseFile(httpRequest._body_file_name);
 	}
-	std::cerr << "--VOY A DEVOLVER " << outFd << std::endl;
+	std::cerr << "VOY A DEVOLVER EL RESULTADO DE CGI " << outFd << std::endl;
 	return outFd;
 }

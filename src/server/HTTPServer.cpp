@@ -47,6 +47,15 @@ int HTTPServer::acceptConnection()
     return (_new_socket);
 }
 
+short int HTTPServer::getRequestStatus(BufferRequest & bufferRequest) {
+	if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked")
+		return CHUNKED_BODY;
+	bufferRequest.content_length = bufferRequest.request.returnContentLength();
+	if ( bufferRequest.content_length != -1 )	
+		return FILLING_BODY;
+	return FULL_REQUEST;
+}
+
 ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
 	char buffer[SERVER_BUFFER_SIZE] ;
 	ssize_t bytes_read = recv(socket, buffer, SERVER_BUFFER_SIZE - 1, MSG_DONTWAIT);
@@ -104,6 +113,27 @@ std::string HTTPServer::get_temp_file() {
 	return ret.str();
 }
 
+int HTTPServer::read_content_length_body( int socket, BufferRequest & bufferRequest, std::string & bufferStr ) {
+	if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
+		//TODO throw exception algo ha ido muy mal
+	}
+	bufferRequest.content_length -= bufferStr.size();
+	bufferStr.clear();
+	if (bufferRequest.content_length <= 0) {
+		close(bufferRequest.request._body_file_fd);
+		return 1;
+	}
+	return -1 ;
+}
+
+int HTTPServer::read_chunked_body( int socket, BufferRequest & bufferRequest, std::string & bufferStr ) {
+	if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
+		close(bufferRequest.request._body_file_fd);
+		return 1 ;
+	}
+	return -1 ;
+}
+
 int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 	std::string & bufferStr = bufferRequest.buffer_str;
 	ssize_t bytes_read = readFromFd(socket, bufferStr);
@@ -121,28 +151,24 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				rnrn += 4;
 				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn));
 				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn) << "---" << std::endl;
-				if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked") {
-					bufferRequest.status = CHUNKED_BODY;
-					bufferStr.erase(0, rnrn);
-					bufferRequest.request._body_file_name = get_temp_file();
-					std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
-					bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-					if (bufferRequest.request._body_file_fd == -1) {
-						std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
-						perror("open");
-						std::exit(1);
-					}
-					if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length ))  {
-						if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
-							Response httpResponse;
-							httpResponse.response_code = 413;
-							Routing::errorResponse(httpResponse, locationRules);
-							sendResponse(socket, httpResponse);
-							return 0;
-						}
-						close(bufferRequest.request._body_file_fd);
-						return 1 ;
-					}
+				
+				// CLEAN BUFFER
+				bufferStr.erase(0, rnrn);
+
+				// CHECK REQUEST ERRORS
+				// if ( bufferRequest.request.getErrorCode() != 200 ) {
+
+				// }
+
+				bufferRequest.status = getRequestStatus(bufferRequest);
+
+				if ( bufferRequest.status == FULL_REQUEST ) {
+					return 1;
+				}
+
+				// TODO BORRAR CUANDO JOSE LO META EN REQUEST
+				if ( bufferRequest.status == FILLING_BODY ) {
+					locationRules = Routing::determineResourceLocation(_serverConfig, bufferRequest.request);
 					if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
 						Response httpResponse;
 						httpResponse.response_code = 413;
@@ -150,21 +176,9 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 						sendResponse(socket, httpResponse);
 						return 0;
 					}
-					return -1 ;
 				}
-				bufferRequest.content_length = bufferRequest.request.returnContentLength();
-				if ( bufferRequest.content_length < 0 )	
-					return 1 ;
-				bufferRequest.status = FILLING_BODY;
-				bufferStr.erase(0, rnrn);
-				locationRules = Routing::determineResourceLocation(_serverConfig, bufferRequest.request);
-				if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
-					Response httpResponse;
-					httpResponse.response_code = 413;
-					Routing::errorResponse(httpResponse, locationRules);
-					sendResponse(socket, httpResponse);
-					return 0;
-				}
+
+				//GENERATE FILE FOR BODY
 				bufferRequest.request._body_file_name = get_temp_file();
 				std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
 				bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
@@ -173,35 +187,16 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 					perror("open");
 					std::exit(1);
 				}
-				if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
-					//TODO throw exception algo ha ido muy mal
+
+				if ( bufferRequest.status == FILLING_BODY ) {
+					return read_content_length_body(socket, bufferRequest, bufferStr);
+				} else {
+					return read_chunked_body(socket, bufferRequest, bufferStr);
 				}
-				bufferRequest.content_length -= bufferStr.size();
-				bufferStr.clear();
-				if (bufferRequest.content_length <= 0) {
-					close(bufferRequest.request._body_file_fd);
-					return 1;
-				}
-				return -1 ;
 			case FILLING_BODY:
-				// COMPROBAMOS EL CONTENT_LENGTH Y ACTUAMOS SEGÚN
-				if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
-					//TODO throw exception algo ha ido muy mal
-				}
-				bufferRequest.content_length -= bufferStr.size();
-				bufferStr.clear();
-				if (bufferRequest.content_length <= 0) {
-					close(bufferRequest.request._body_file_fd);
-					return 1;
-				}
-				return -1 ;
+				return read_content_length_body(socket, bufferRequest, bufferStr);
 			case CHUNKED_BODY:
-				// BUSCAMOS DOS RN Y APPENDEAMOS AL BODY DESPUÉS DE PASAR POR UNA FUNCIÓN DE PARSEO
-				if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
-					close(bufferRequest.request._body_file_fd);
-					return 1 ;
-				}
-				return -1 ;
+				return read_chunked_body(socket, bufferRequest, bufferStr);
 			default:
 				// NUNCA DEBERÍA PASAR
 				return -1;
@@ -221,7 +216,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 			_bufferedRequests.erase(socket);
 	        return 0 ;
 	    default :
-			HTTPRequest httpRequest = bufferRequest.request;
+			HTTPRequest & httpRequest = bufferRequest.request;
 			std::cout << "Uri: " << httpRequest.getURI() << std::endl;
 			LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, httpRequest);
 			Response httpResponse;

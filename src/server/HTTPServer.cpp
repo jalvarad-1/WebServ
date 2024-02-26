@@ -113,7 +113,7 @@ std::string HTTPServer::get_temp_file() {
 	return ret.str();
 }
 
-int HTTPServer::read_content_length_body( int socket, BufferRequest & bufferRequest, std::string & bufferStr ) {
+int HTTPServer::read_content_length_body( BufferRequest & bufferRequest, std::string & bufferStr ) {
 	if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
 		//TODO throw exception algo ha ido muy mal
 	}
@@ -126,7 +126,7 @@ int HTTPServer::read_content_length_body( int socket, BufferRequest & bufferRequ
 	return -1 ;
 }
 
-int HTTPServer::read_chunked_body( int socket, BufferRequest & bufferRequest, std::string & bufferStr ) {
+int HTTPServer::read_chunked_body( BufferRequest & bufferRequest, std::string & bufferStr ) {
 	if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
 		close(bufferRequest.request._body_file_fd);
 		return 1 ;
@@ -149,33 +149,29 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 					return -1 ;
 				}
 				rnrn += 4;
-				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn));
+				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn), _serverConfig);
 				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn) << "---" << std::endl;
 				
 				// CLEAN BUFFER
 				bufferStr.erase(0, rnrn);
 
 				// CHECK REQUEST ERRORS
-				// if ( bufferRequest.request.getErrorCode() != 200 ) {
-
-				// }
+				if (bufferRequest.request.getErrorCode() != 200) {
+					Response httpResponse;
+					LocationRules & locationRules = *(bufferRequest.request.getLocationRules());
+					if (bufferRequest.request.getErrorCode() == 302) {
+						httpResponse.headers["Location"] = locationRules.getRedirect();
+					}
+					httpResponse.response_code = 405;
+					Routing::errorResponse(httpResponse, locationRules);
+					sendResponse(socket, httpResponse);
+					return 0;
+				}
 
 				bufferRequest.status = getRequestStatus(bufferRequest);
 
 				if ( bufferRequest.status == FULL_REQUEST ) {
 					return 1;
-				}
-
-				// TODO BORRAR CUANDO JOSE LO META EN REQUEST
-				if ( bufferRequest.status == FILLING_BODY ) {
-					locationRules = Routing::determineResourceLocation(_serverConfig, bufferRequest.request);
-					if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
-						Response httpResponse;
-						httpResponse.response_code = 413;
-						Routing::errorResponse(httpResponse, locationRules);
-						sendResponse(socket, httpResponse);
-						return 0;
-					}
 				}
 
 				//GENERATE FILE FOR BODY
@@ -189,14 +185,14 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				}
 
 				if ( bufferRequest.status == FILLING_BODY ) {
-					return read_content_length_body(socket, bufferRequest, bufferStr);
+					return read_content_length_body(bufferRequest, bufferStr);
 				} else {
-					return read_chunked_body(socket, bufferRequest, bufferStr);
+					return read_chunked_body(bufferRequest, bufferStr);
 				}
 			case FILLING_BODY:
-				return read_content_length_body(socket, bufferRequest, bufferStr);
+				return read_content_length_body(bufferRequest, bufferStr);
 			case CHUNKED_BODY:
-				return read_chunked_body(socket, bufferRequest, bufferStr);
+				return read_chunked_body(bufferRequest, bufferStr);
 			default:
 				// NUNCA DEBERÍA PASAR
 				return -1;
@@ -218,29 +214,9 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 	    default :
 			HTTPRequest & httpRequest = bufferRequest.request;
 			std::cout << "Uri: " << httpRequest.getURI() << std::endl;
+			//LocationRules & locationRules = *(bufferRequest.request.getLocationRules());
 			LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, httpRequest);
 			Response httpResponse;
-			if (!Routing::isAllowedMethod(httpRequest.getMethod(), locationRules.getAllowedMethods())) {
-				// TODO: devolver response 405
-				std::cerr << "METHOD NOT ALLOWED" << std::endl;
-				httpResponse.response_code = 405;
-				Routing::errorResponse(httpResponse, locationRules);
-				if (!httpRequest._body_file_name.empty()) {
-					cgiManager.eraseFile(httpRequest._body_file_name);
-				}
-				sendResponse(socket, httpResponse);
-				std::cout << "Cerramos el socket: " << socket << std::endl;
-				close(socket);
-				_bufferedRequests.erase(socket);
-				return 0 ;
-			}
-			if (!locationRules.getRedirect().empty()) {
-				// TODO: devolver response 302
-				// response.response_code = 302;
-				// response.headers["Location"] = locationRule.getRedirect();
-				std::cerr << "REDIRECTIOOOOOOOOOOON" << std::endl;
-				return 0 ;
-			}
 			std::string file_path = Routing::createFilePath(locationRules, httpRequest);
 			int cgi_fd;
 			switch (Routing::typeOfResource(file_path, locationRules)) {
@@ -255,10 +231,12 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 							perror("open");
 							std::exit(1);
 						}
+						close(httpRequest._body_file_fd);
 					}
 					cgi_fd = cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
 					if (cgi_fd == -1) {
 						httpResponse.response_code = 500;
+						Routing::errorResponse(httpResponse, locationRules);
 						break;
 					}
 					_bufferedRequests.erase(socket);

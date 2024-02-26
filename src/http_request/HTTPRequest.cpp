@@ -149,6 +149,11 @@ std::string HTTPRequest::getFilePath() const {
     return _file_path;
 }
 
+
+LocationRules * HTTPRequest::getLocationRules() const {
+	return _location_rules;
+}
+
 void HTTPRequest::setPathInfo(std::string path_info) {
     _path_info = path_info;
 }

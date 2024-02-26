@@ -52,8 +52,8 @@ class HTTPServer
 		ssize_t readFromFd( int socket, std::string & bufferStr ) ;
 		bool parseChunk(std::string & bufferStr, int wr_fd, int * content_length);
 		short int getRequestStatus(BufferRequest & bufferRequest);
-		int read_content_length_body( int socket, BufferRequest & bufferRequest, std::string & bufferStr );
-		int read_chunked_body( int socket, BufferRequest & bufferRequest, std::string & bufferStr );
+		int read_content_length_body( BufferRequest & bufferRequest, std::string & bufferStr );
+		int read_chunked_body( BufferRequest & bufferRequest, std::string & bufferStr );
 		std::string get_temp_file();
 };
 #endif

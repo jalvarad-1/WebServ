@@ -39,6 +39,7 @@ class HTTPRequest {
         std::string getBody() const;
         int getErrorCode() const;
         std::string getPathInfo() const;
+        LocationRules * getLocationRules() const;
         void setPathInfo(std::string path_info);
         std::string getFilePath() const;
 };

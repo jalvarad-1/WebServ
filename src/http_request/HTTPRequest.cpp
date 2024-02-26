@@ -14,15 +14,32 @@ void trim(std::string& s)
         s = s.substr(start, end - start + 1);
 }
 
-HTTPRequest::HTTPRequest(void) {
+HTTPRequest::HTTPRequest(void) {//Dummy constructor
 	_body_file_fd = 0;
 }
 
-HTTPRequest::HTTPRequest(const std::string& raw_request)
+HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverConfig)
 {
     if (!parse(raw_request))
-        _error_message = "Failed to parse the request.";
+        _error_code = 400;//Bad Request
 	_body_file_fd = 0;
+    _location_rules = &Routing::determineResourceLocation(serverConfig, *this);
+    if (!Routing::isAllowedMethod(_method, _location_rules->getAllowedMethods())) {
+				std::cerr << "METHOD NOT ALLOWED" << std::endl;
+				this->_error_code = 405;
+                return ;
+	}
+	if (!_location_rules->getRedirect().empty()) {
+        _error_code = 302;
+		std::cerr << "REDIRECTIOOOOOOOOOOON" << std::endl;
+        return ;
+	}
+    int content_lenght = returnContentLength();
+    if (content_lenght != -1 && content_lenght > _location_rules->getMaxBodySize()) {
+        _error_code = 404;
+        return ;
+    }
+	_file_path = Routing::createFilePath(*_location_rules, *this);
 }
 
 bool HTTPRequest::methodAcceptsBody() const
@@ -115,9 +132,9 @@ std::string HTTPRequest::getBody() const
     return _body;
 }
 
-std::string HTTPRequest::getErrorMessage() const
+int HTTPRequest::getErrorCode() const
 {
-        return _error_message;
+        return _error_code;
 }
 
 std::map<std::string, std::string> HTTPRequest::getHeaders() const {
@@ -126,6 +143,10 @@ std::map<std::string, std::string> HTTPRequest::getHeaders() const {
 
 std::string HTTPRequest::getPathInfo() const {
     return _path_info;
+}
+
+std::string HTTPRequest::getFilePath() const {
+    return _file_path;
 }
 
 void HTTPRequest::setPathInfo(std::string path_info) {

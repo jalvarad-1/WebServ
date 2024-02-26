@@ -1,6 +1,6 @@
 #include "Routing_ns.hpp"
 
-LocationRules Routing::determineResourceLocation(ServerConfig serverConfig, HTTPRequest httpRequest)
+LocationRules & Routing::determineResourceLocation(ServerConfig serverConfig, HTTPRequest httpRequest)
 {
     std::string uri = httpRequest.getURI();
     while (!uri.empty()) {

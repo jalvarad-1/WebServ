@@ -81,8 +81,9 @@ Response Routing::processDirPath(std::string resource_path, LocationRules locati
 {
     Response response;
     std::string default_file;
+    std::cout << resource_path << std::endl;
     if (!locationRule.getIndex().empty())
-        default_file = resource_path + "/" + locationRule.getIndex();
+        default_file = resource_path + locationRule.getIndex();
     std::string buffer;
 
     std::cout << "processDirPath: " << default_file << std::endl;

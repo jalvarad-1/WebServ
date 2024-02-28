@@ -39,6 +39,7 @@ HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverCon
         _error_code = 404;
         return ;
     }
+    _error_code = 200;
 	_file_path = Routing::createFilePath(*_location_rules, *this);
 }
 

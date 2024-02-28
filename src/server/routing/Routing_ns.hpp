@@ -19,7 +19,7 @@ class HTTPRequest;
 namespace Routing
 {
     Response        returnResource(ServerConfig serverConfig, HTTPRequest httpRequest);//0
-    LocationRules & determineResourceLocation(ServerConfig serverConfig, HTTPRequest httpRequest);//1
+    LocationRules & determineResourceLocation(ServerConfig & serverConfig, HTTPRequest httpRequest);//1
     Response        determinePathRequestedResource(HTTPRequest httpRequest, LocationRules locationRule);//2
     bool            isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods);//3
     std::string     removeKeyValue(std::string toRemove, std::string str);//3

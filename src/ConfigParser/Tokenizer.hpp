@@ -13,17 +13,7 @@ namespace simpleParser {
         STRING_LITERAL,
         OPERATOR,
         COMMENT,
-        EMPTY, // No token ever has this type
-    };
-
-    static const char* sTokenTypeStrings[] = {
-        "WHITESPACE",
-        "IDENTIFIER",
-        "INTEGER_LITERAL",
-        "STRING_LITERAL",
-        "OPERATOR",
-        "COMMENT",
-        "EMPTY"
+        EMPTY // No token ever has this type
     };
 
     class Token {

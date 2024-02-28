@@ -74,8 +74,9 @@ Response parse_output(std::string output) {
             prevPos = pos + 1;
         }
     }
-    else 
+    else {
         ret.string_body = output;
+	}
 	return ret;
 }
 

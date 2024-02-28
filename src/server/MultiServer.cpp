@@ -8,7 +8,7 @@ MultiServer::MultiServer(const std::vector<ServerConfig>& serverConfigs) {
 		struct fd_info index_entry;
 		index_entry.server = new HTTPServer(AF_INET, SOCK_STREAM, interface, port, INADDR_ANY, 0, *it);
 		index_entry.fd_type = LISTENING_PORT;
-        struct pollfd pfd = create_pollfd(index_entry.server->get_socket()->get_sock());
+        struct pollfd pfd = createPollfd(index_entry.server->getSocket()->getSock());
 		fd_index[pfd.fd] = index_entry;
         poll_fds.push_back(pfd);
     }
@@ -38,7 +38,7 @@ void MultiServer::run() {
 					case LISTENING_PORT:
 						std::cerr << "RECIBIMOS DATOS POR EL listening FD " << poll_fds[i].fd << std::endl;
 						socket = current_fd.server->acceptConnection();
-						poll_fds.push_back(create_pollfd(socket));
+						poll_fds.push_back(createPollfd(socket));
 						fd_index[socket] = fd_info(CONNECTION_SOCKET, current_fd.server);
 						continue ;
 					case CONNECTION_SOCKET:
@@ -49,20 +49,20 @@ void MultiServer::run() {
 								continue ;
 							case 0:
 								std::cerr << "VOY A BORRAR EL socket FD " << poll_fds[i].fd << std::endl;
-								erase_pollfd(i);
+								erasePollfd(i);
 								continue ;
 							default:
 								fd_index[readResult] = fd_info(CGI_FD, NULL);
-								poll_fds.push_back(create_pollfd(readResult));
+								poll_fds.push_back(createPollfd(readResult));
 								std::cerr << "VOY A BORRAR EL socket FD " << poll_fds[i].fd << " TRAS EJECUTAR UN CGI" << std::endl;
-								erase_pollfd(i);
+								erasePollfd(i);
 						}
 						continue ;
 					case CGI_FD:
 						// std::cerr << "RECIBIMOS DATOS POR EL cgi FD " << poll_fds[i].fd << std::endl;
 						if (!cgiManager.readOutput(poll_fds[i].fd)) {
 							std::cerr << "VOY A BORRAR EL cgi FD " << poll_fds[i].fd << std::endl;
-							erase_pollfd(i);						
+							erasePollfd(i);						
 						}
 						continue ;
 					default:
@@ -73,15 +73,15 @@ void MultiServer::run() {
     }
 }
 
-std::vector<struct pollfd> MultiServer::get_fds() {
+std::vector<struct pollfd> MultiServer::getFds() {
     return poll_fds;
 }
 
-void MultiServer::set_fds(struct pollfd new_poll_fd) {
+void MultiServer::setFds(struct pollfd new_poll_fd) {
     poll_fds.push_back(new_poll_fd);
 }
 
-struct pollfd MultiServer::create_pollfd(int fd) {
+struct pollfd MultiServer::createPollfd(int fd) {
 	struct pollfd pfd;
 	pfd.fd = fd;
 	pfd.events = POLLIN;
@@ -89,7 +89,7 @@ struct pollfd MultiServer::create_pollfd(int fd) {
 	return pfd;
 }
 
-void MultiServer::erase_pollfd(int i) {
+void MultiServer::erasePollfd(int i) {
 	fd_index.erase(poll_fds[i].fd);
 	poll_fds.erase(poll_fds.begin() + i);
 }

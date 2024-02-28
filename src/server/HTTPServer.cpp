@@ -24,8 +24,7 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
     }
 }
 
-
-ListeningSocket * HTTPServer::get_socket()
+ListeningSocket * HTTPServer::getSocket()
 {
     return _socket;
 }
@@ -37,10 +36,10 @@ int HTTPServer::getListeningPort()
 
 int HTTPServer::acceptConnection()
 {
-    struct sockaddr_in address = get_socket()->get_address();
+    struct sockaddr_in address = getSocket()->getAddress();
     int addrlen = sizeof(address);
     // std::cout << "Puerto usado: " << get_socket()->get_sock() << std::endl;
-    _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    _new_socket = accept(getSocket()->getSock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (_new_socket == -1)
         std::cout << "Error" << std::endl;
     std::cout << "\nRecibimos conexion socket: " << _new_socket << std::endl;
@@ -107,13 +106,13 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_le
 	return parseChunk(bufferStr, wr_fd, content_length) ;
 }
 
-std::string HTTPServer::get_temp_file() {
+std::string HTTPServer::getTempFile() {
 	std::stringstream ret;
 	ret << temp_file_path << "_" << temp_file_counter++;
 	return ret.str();
 }
 
-int HTTPServer::read_content_length_body( BufferRequest & bufferRequest, std::string & bufferStr ) {
+int HTTPServer::readContentLengthBody( BufferRequest & bufferRequest, std::string & bufferStr ) {
 	if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
 		//TODO throw exception algo ha ido muy mal
 	}
@@ -126,7 +125,7 @@ int HTTPServer::read_content_length_body( BufferRequest & bufferRequest, std::st
 	return -1 ;
 }
 
-int HTTPServer::read_chunked_body( BufferRequest & bufferRequest, std::string & bufferStr ) {
+int HTTPServer::readChunkedBody( BufferRequest & bufferRequest, std::string & bufferStr ) {
 	if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
 		close(bufferRequest.request._body_file_fd);
 		return 1 ;
@@ -175,7 +174,7 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				}
 
 				//GENERATE FILE FOR BODY
-				bufferRequest.request._body_file_name = get_temp_file();
+				bufferRequest.request._body_file_name = getTempFile();
 				std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
 				bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 				if (bufferRequest.request._body_file_fd == -1) {
@@ -185,14 +184,14 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				}
 
 				if ( bufferRequest.status == FILLING_BODY ) {
-					return read_content_length_body(bufferRequest, bufferStr);
+					return readContentLengthBody(bufferRequest, bufferStr);
 				} else {
-					return read_chunked_body(bufferRequest, bufferStr);
+					return readChunkedBody(bufferRequest, bufferStr);
 				}
 			case FILLING_BODY:
-				return read_content_length_body(bufferRequest, bufferStr);
+				return readContentLengthBody(bufferRequest, bufferStr);
 			case CHUNKED_BODY:
-				return read_chunked_body(bufferRequest, bufferStr);
+				return readChunkedBody(bufferRequest, bufferStr);
 			default:
 				// NUNCA DEBERÍA PASAR
 				return -1;
@@ -223,7 +222,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 				case ISCGI:
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
 					if (httpRequest._body_file_name.empty()) {
-						httpRequest._body_file_name = get_temp_file();
+						httpRequest._body_file_name = getTempFile();
 						std::cerr << "VOY A CREAR EL ARCHIVO " << httpRequest._body_file_name << " PORQUE MI CGI NO TIENE BODY" << std::endl;
 						httpRequest._body_file_fd = open(httpRequest._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 						if (httpRequest._body_file_fd == -1) {
@@ -322,7 +321,7 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
     std::string date = getDate();
     std::stringstream response;
 
-    response << "HTTP/1.1 " << httpResponse.response_code << " " << response_codes.get_code_string(httpResponse.response_code) << "\r\n";
+    response << "HTTP/1.1 " << httpResponse.response_code << " " << response_codes.getCodeString(httpResponse.response_code) << "\r\n";
     response << "Content-Type: " << getContentType(httpResponse.file_path) << "\r\n";
     response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
 	for ( std::map<std::string, std::string>::iterator iter = httpResponse.headers.begin(); iter != httpResponse.headers.end(); iter++ ) {

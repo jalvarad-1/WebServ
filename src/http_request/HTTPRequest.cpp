@@ -20,8 +20,9 @@ HTTPRequest::HTTPRequest(void) {//Dummy constructor
 
 HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverConfig)
 {
-    if (!parse(raw_request))
+    if (!parse(raw_request)) {
         _error_code = 400;//Bad Request
+    }
 	_body_file_fd = 0;
     _location_rules = &Routing::determineResourceLocation(serverConfig, *this);
     if (!Routing::isAllowedMethod(_method, _location_rules->getAllowedMethods())) {

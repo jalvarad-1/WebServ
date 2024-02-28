@@ -29,14 +29,5 @@ namespace Routing
     void            errorResponse(Response & response, LocationRules & locationRule);
     std::string     createFilePath(LocationRules locationRule, HTTPRequest& httpRequest);
 }
-/*
-    
-    * función que reciba el location y devuelva el path necesario,
-    comprobando ya si es posible abrir y si existe
-        -  path archivo, path archivo a mostrar en caso de error, array con códigos [cgi?, directorio?]?,
-
-    * en caso de ser un resultado del cgi, hay que parsear sus headers y devolverlos
-    https://www.oreilly.com/openbook/cgi/ch03_02.html
-*/
 
 #endif

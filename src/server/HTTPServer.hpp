@@ -44,7 +44,7 @@ class HTTPServer
         // int sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager);
 		int sendResponse(int socket, Response & httpResponse);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
-        ListeningSocket * get_socket();
+        ListeningSocket * getSocket();
         int getListeningPort();
 
 		int handleEvent( int socket, CGIManager & cgiManager ) ;
@@ -52,8 +52,8 @@ class HTTPServer
 		ssize_t readFromFd( int socket, std::string & bufferStr ) ;
 		bool parseChunk(std::string & bufferStr, int wr_fd, int * content_length);
 		short int getRequestStatus(BufferRequest & bufferRequest);
-		int read_content_length_body( BufferRequest & bufferRequest, std::string & bufferStr );
-		int read_chunked_body( BufferRequest & bufferRequest, std::string & bufferStr );
-		std::string get_temp_file();
+		int readContentLengthBody( BufferRequest & bufferRequest, std::string & bufferStr );
+		int readChunkedBody( BufferRequest & bufferRequest, std::string & bufferStr );
+		std::string getTempFile();
 };
 #endif

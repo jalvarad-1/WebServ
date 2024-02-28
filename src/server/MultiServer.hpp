@@ -30,12 +30,12 @@ class MultiServer
 
     public:
         /// TODO to decide type of variable to pass to Constructor
-        std::vector<struct pollfd> get_fds();
-        void set_fds(struct pollfd);
+        std::vector<struct pollfd> getFds();
+        void setFds(struct pollfd);
         MultiServer(const std::vector<ServerConfig>& serverConfigs);
         ~MultiServer();
         void run();
-        struct pollfd create_pollfd(int fd);
-        void erase_pollfd(int i);
+        struct pollfd createPollfd(int fd);
+        void erasePollfd(int i);
 };
 #endif

@@ -38,36 +38,3 @@ int main(int argc, char **argv)
         return -1;
     }
 }
-
-// int main() {
-//     std::string cgi_path = "./cgi_bin/uploader";
-//     std::string file_path = "./cgi_bin/upload.sh";
-//     std::string file_content = "Esto es el contenido del archivo";
-//     Response ret;
-
-//     // Este va a ser el mapa con el que le vamos a pasar todas las variables de entorno.
-//     std::map<std::string, std::string> env;
-//     env["REQUEST_METHOD"] = "GET";
-//     env["SERVER_PROTOCOL"] = "HTTP/1.1";
-//     env["PATH_INFO"] = "asdasdasdasdasd";
-//     env["filename"] = "vgutten42.txt";
-
-//     // Este va a ser el vector con el que le vamos a pasar los argumentos.
-//     std::vector<std::string> args;
-//     args.push_back(cgi_path);
-//     args.push_back(file_path);
-//     args.push_back(file_content);
-
-//     CGI cgi(cgi_path);
-//     cgi.set_env(env);
-//     cgi.set_args(args);
-//     ret = cgi.run_CGI("Esto sería el body");
-
-//     // std::cout << "Header Status: " << ret.headers["Status"] << std::endl;
-//     // std::cout << "Header Status: " << ret.headers["Filename"] << std::endl;
-
-//     std::cout << "Body: " << ret.string_body << std::endl;
-//     //Guardamos en ret los valores que obtenemos del CGI.
-
-//     return 0;
-// }

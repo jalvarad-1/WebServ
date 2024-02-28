@@ -10,7 +10,7 @@ ResponseCode::ResponseCode() {
     this->_codes[500] = "Internal Server Error";
 }
 
-std::string ResponseCode::get_code_string(int code) {
+std::string ResponseCode::getCodeString(int code) {
     return (this->_codes[code]);
 }
 

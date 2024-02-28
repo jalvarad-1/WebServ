@@ -10,13 +10,13 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     _address.sin_addr.s_addr = interface;
     
     _sock = socket(domain, service, protocol);
-    test_connection(_sock);
+    testConnection(_sock);
     int reuse = 1;
-    test_connection(setsockopt(_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)));
+    testConnection(setsockopt(_sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)));
 
     // Bind (connect to network)
     _binding = bind(_sock, (struct sockaddr *)&_address, sizeof(_address));
-    test_connection(_binding);
+    testConnection(_binding);
 
     // start listening
 
@@ -25,11 +25,11 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
     
     _backlog = bklg;
     _listening = listen(_sock, _backlog);
-    test_connection(_listening);
+    testConnection(_listening);
     std::cout << "socket on port " << port << " ready" << std::endl;
 }
 
-void ListeningSocket::test_connection(int item_to_test)
+void ListeningSocket::testConnection(int item_to_test)
 {
     if (item_to_test < 0)
     {
@@ -38,17 +38,17 @@ void ListeningSocket::test_connection(int item_to_test)
     }
 }
 
-int ListeningSocket::get_binding()
+int ListeningSocket::getBinding()
 {
     return _binding;
 }
 
-struct sockaddr_in ListeningSocket::get_address()
+struct sockaddr_in ListeningSocket::getAddress()
 {
     return _address;
 }
 
-int ListeningSocket::get_sock()
+int ListeningSocket::getSock()
 {
     return _sock;
 }

@@ -20,10 +20,10 @@ class ListeningSocket
     public:
         ListeningSocket(int domain, int service, int protocol, int port,
             u_long interface, int bklg);
-        void test_connection(int item_to_test);
-        int  get_binding();
-        struct sockaddr_in get_address();
-        int  get_sock();
+        void testConnection(int item_to_test);
+        int  getBinding();
+        struct sockaddr_in getAddress();
+        int  getSock();
 };
 
 #endif

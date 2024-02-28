@@ -248,7 +248,8 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 					httpResponse = Routing::processFilePath(file_path);//process file        
 					break;
 				default:
-					httpResponse.response_code = 404; // TODO send response 404
+					httpResponse.response_code = 404;
+					break; // TODO send response 404
 			}
 		if (!httpRequest._body_file_name.empty()) {
 			cgiManager.eraseFile(httpRequest._body_file_name);

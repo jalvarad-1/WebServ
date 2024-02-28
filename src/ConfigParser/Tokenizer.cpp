@@ -87,8 +87,8 @@ namespace simpleParser{
         token.mText.erase();
     }
 
-    void Token::debugPrint() const {
-        std::cout << "Token(" << sTokenTypeStrings[mType] << ", \"" << mText << "\", " << mLineNumber << ")" << std::endl;
-    }
+    // void Token::debugPrint() const {
+    //     std::cout << "Token(" << sTokenTypeStrings[mType] << ", \"" << mText << "\", " << mLineNumber << ")" << std::endl;
+    // }
 }
     

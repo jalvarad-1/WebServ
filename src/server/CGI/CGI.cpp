@@ -68,7 +68,11 @@ int CGI::child_process(int (&pipefd)[2], int rd_fd) {
         exit(500);
         return -1;
     }
-	std::cerr << "pepe"  << std::endl;
+
+    std::stringstream salida;
+
+    salida << "Soy el argv: " << _argv[1] << "||" << std::endl; 
+	std::cerr << salida.str().c_str();
     execve(_cgi_path, _argv, _envp);
 	write(1, "Status: 500 Internal Server Error\r\n\r\n", 37);
     exit(500);
@@ -109,11 +113,13 @@ int CGI::execute_binary(std::string request_body) {
     }
     else if (pid == 0) {
 		(void)request_body;
+
         // if (this->child_process(pipefd, request_body) == -1)
         //     exit (1);
             // return (-1);
     }
     else {
+        // std::exit;
         if (this->father_process(pipefd, pid) == -1)
             return (-1);
     }
@@ -121,6 +127,7 @@ int CGI::execute_binary(std::string request_body) {
 }
 
 int CGI::exec_cgi(std::string body_filename, pid_t *ret_pid) {
+    std::cerr << "Soy el argv del padre (funciona porfi): " << _argv[1] << std::endl;
 	int rd_fd = open(body_filename.c_str(), O_RDONLY);
 	if (rd_fd == -1) {
 		std::cerr << "ERROR WHEN TRYING TO OPEN " << body_filename << std::endl;

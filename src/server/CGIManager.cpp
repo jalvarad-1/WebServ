@@ -59,7 +59,7 @@ bool CGIManager::readOutput( int fd ) {
 
 Response parse_output(std::string output) {
 	Response ret;
-	std::cout << "Salida!! :" << output << std::endl;
+	// std::cout << "Salida!! :" << output << std::endl;
     std::size_t pos = output.find("\n\r", 0);
     if (pos != std::string::npos) {
         //Guardamos el body desde justo después del salto de línea
@@ -75,8 +75,9 @@ Response parse_output(std::string output) {
             prevPos = pos + 1;
         }
     } 
-	else
+	else {
     	ret.string_body = output;
+	}
 	return ret;
 }
 
@@ -89,6 +90,8 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 
 	// if (ret.headers["Content-Type"] == "")
 		ret.headers["Content-Type"] = "text/plain";
+
+	std::cout << "Status aquí: " << ret.headers["Status"] << std::endl;
 
 	response << "HTTP/1.1 " << ret.headers["Status"] << "\r\n";
 	response << "Content-Type: " << ret.headers["Content-Type"] << "\r\n";
@@ -117,10 +120,13 @@ int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRe
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();
     env["PATH_INFO"] = cgi_pass; // TODO Review the meaning of PATH_INFO
-	
+	env["filename"] = "Archivo.txt";
+
 	std::vector<std::string> args;
+	std::cout << "Binario: " << cgi_pass << std::endl;
 	CGI cgi(cgi_pass);
 	std::cout << "ruta: " << binary_path << std::endl;
+	args.push_back(cgi_pass);
 	args.push_back(binary_path);
 
 	cgi.set_env(env);

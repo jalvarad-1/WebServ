@@ -1,5 +1,7 @@
 ./.vscode
 .DS_Store
+./cgi_bin/bashCGI
+./cgi_bin/pythonCGI
 YoupiBanane
 ubuntu_cgi_tester
 ubuntu_tester

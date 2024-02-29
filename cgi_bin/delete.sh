@@ -8,6 +8,13 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+if [ ! -f "uploaded_files/$filename" ]; then
+    echo -e "Status: 404 Bad request"
+    echo -e "\r"
+    echo -e "File not found"
+    exit 1
+fi
+
 # Elimina el archivo pasado como variable de entorno.
 rm -rf uploaded_files/$filename;
 
@@ -19,7 +26,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -e "Status: 204 Deleted"
-echo -e "Filename: $filename"
-echo -e "Content-Type: text/plain"
 echo -e "\r"
-echo -e "File deleted successfully"

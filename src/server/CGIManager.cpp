@@ -113,21 +113,21 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	close(outSocket);
 }
 
-int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRequest & httpRequest, int socket) {
+int CGIManager::executeCGI(std::string cgiBinary_path, std::string file_path, HTTPRequest & httpRequest, int socket) {
 	BufferCGI bufferCGI;
 	
 	std::map<std::string, std::string> env;
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();
-    env["PATH_INFO"] = cgi_pass; // TODO Review the meaning of PATH_INFO
-	env["filename"] = "Archivo.txt";
+    env["PATH_INFO"] = cgiBinary_path; // TODO Review the meaning of PATH_INFO
+	env["filename"] = "archivo.txt";
 
 	std::vector<std::string> args;
-	std::cout << "Binario: " << cgi_pass << std::endl;
-	CGI cgi(cgi_pass);
-	std::cout << "ruta: " << binary_path << std::endl;
-	args.push_back(cgi_pass);
-	args.push_back(binary_path);
+	std::cout << "Binario: " << cgiBinary_path << std::endl;
+	CGI cgi(cgiBinary_path);
+	std::cout << "ruta: " << file_path << std::endl;
+	args.push_back(cgiBinary_path);
+	args.push_back(file_path);
 
 	cgi.set_env(env);
 	cgi.set_args(args);

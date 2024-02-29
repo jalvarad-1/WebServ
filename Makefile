@@ -11,14 +11,18 @@ SRCS =	src/main.cpp\
 		src/ConfigParser/LocationRules.cpp\
 		src/ConfigParser/ServerConfig.cpp\
 		src/http_request/HTTPRequest.cpp\
-        src/utils/utils.cpp\
+		src/utils/utils.cpp\
 		src/server/response_code/ResponseCode.cpp\
 		src/server/CGI/CGI.cpp\
 		src/server/routing/Routing_ns.cpp\
 		src/server/CGIManager.cpp\
 
-
 OBJS = $(SRCS:.cpp=.o)
+
+CGI_BINARIES =	cgi_bin/cgiPrograms/pythonCGI.cpp\
+				cgi_bin/cgiPrograms/bashCGI.cpp\
+
+CGI_EXECS = $(CGI_BINARIES:.cpp=)
 
 # COLORS #
 
@@ -34,6 +38,8 @@ all: $(NAME)
 
 $(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
+	@chmod 755 ./cgi_bin/delete.sh
+	@chmod 755 ./cgi_bin/upload.sh
 	@echo "\033[0;32mCompiled\033[0m"
 
 echo: 
@@ -41,10 +47,16 @@ echo:
 
 clean:
 	@rm -f $(OBJS)
+	rm -f $(CGI_EXECS)
 	@echo "\033[0;33mCleaning objects\033[0m"
 
 fclean: clean
 	@rm -f $(NAME)
 	@echo "\033[0;35mFclean done\033[0m"
+
+binaries: $(CGI_EXECS)
+
+%: %.cpp
+	@$(CXX) $(CXXFLAGS) -o $@ $< && mv $@ cgi_bin
 
 re: fclean all

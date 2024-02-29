@@ -21,10 +21,8 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
 echo -e "Status: 201 Created"
-echo -e "Filename: $filename"
 echo -e "Content-Type: text/plain"
+echo -e "Filename: $filename"
 echo -e "\r"
 echo -e "File created successfully"
-echo -e $pwd

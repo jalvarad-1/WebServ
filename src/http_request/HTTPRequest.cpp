@@ -20,18 +20,18 @@ HTTPRequest::HTTPRequest(void) {//Dummy constructor
 
 HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverConfig)
 {
-    if (!parse(raw_request))
-        _error_code = 400;//Bad Request
+    if (!parse(raw_request)) {
+        _error_code = 400;
+		return ;
+	}
 	_body_file_fd = 0;
     _location_rules = &Routing::determineResourceLocation(serverConfig, *this);
     if (!Routing::isAllowedMethod(_method, _location_rules->getAllowedMethods())) {
-				std::cerr << "METHOD NOT ALLOWED" << std::endl;
-				this->_error_code = 405;
-                return ;
+		_error_code = 405;
+		return ;
 	}
 	if (!_location_rules->getRedirect().empty()) {
         _error_code = 302;
-		std::cerr << "REDIRECTIOOOOOOOOOOON" << std::endl;
         return ;
 	}
     int content_lenght = returnContentLength();
@@ -67,8 +67,9 @@ bool HTTPRequest::parse(const std::string& raw_request) {
     std::getline(ss, line);
     std::istringstream request_line(line);
     request_line >> _method >> _uri >> _http_version;
-    _method = _method.empty()? "GET": _method;
-    _uri = _uri.empty() ? "/": _uri;
+	if ( _method.empty() || _uri.empty() || _http_version.compare("HTTP/1.1") ) {
+		return false ;
+	}
     _http_version = "HTTP/1.1";
     std::cout << "parseando linea request" << std::endl ;
     while (std::getline(ss, line) && !line.empty() && line != "\r")
@@ -93,15 +94,6 @@ bool HTTPRequest::parse(const std::string& raw_request) {
             std::cout << "1" << std::endl; //TODO Mensaje más claro
             return false;
         }
-    }
-    if (methodAcceptsBody())
-    {
-        // se utiliza ostringstream por temas de performance, ya que no creas una nueva cadena en cada iteración como se haría si hiciera _body += line
-        std::ostringstream body_stream;
-        while (std::getline(ss, line))
-            body_stream << line << "\n";
-        _body = body_stream.str();
-
     }
     return true;// devuelve true si todo salió bien, o false si hubo algún error
 }

@@ -123,7 +123,6 @@ int CGIManager::executeCGI(std::string cgi_pass, std::string binary_path, HTTPRe
 	cgi.set_env(env);
 	cgi.set_args(args);
 	
-	// TODO Control de errores
 	int outFd = cgi.exec_cgi(httpRequest._body_file_name, &bufferCGI.pid);
 	if (outFd != -1) {
 		bufferCGI.out_socket = socket;

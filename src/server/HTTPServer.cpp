@@ -7,7 +7,7 @@
 
 int HTTPServer::temp_file_counter = 0;
 
-std::string HTTPServer::temp_file_path = "./waifu";
+std::string HTTPServer::temp_file_path = "./.cache/WAIFU";
 
 BufferRequest::BufferRequest( void ) {
 	content_length = 0;
@@ -19,9 +19,6 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
             _serverConfig(serverConfig)
 {
     _socket = new ListeningSocket(domain, service, protocol, port, interface, bklg);
-	for (int i = 0; i < 30000; i++) {
-        _buffer[i] = 0;
-    }
 }
 
 
@@ -76,15 +73,8 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_le
 		return false ;
 	char *pEnd;
 	std::string auxStr = bufferStr.substr(0, firstRN);
-	std::cout << "Number is " << auxStr << std::endl;
 	double characterN;
-	/// NUNCA FUE 8000 /// curl -H "Transfer-Encoding: chunked" -d @input http://localhost:8000/directory/youpi.bla -vvv
 	characterN = static_cast<double>(std::strtol(auxStr.c_str(), &pEnd, 16));
-	std::cout << "NUMBER IS " << characterN << std::endl;
-	///
-	if (*pEnd != '\0') {
-		//TODO throw exception
-	}
 	if (characterN == 0)
 		return true ;
 	firstRN += 2;
@@ -92,14 +82,10 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_le
 	if (secondRN == std::string::npos)
 		return false ;
 	std::cout << "YAY I FOUND THE END" << std::endl;
-	if (static_cast<double>(secondRN) != characterN) {
-		//TODO throw exception
-	}
-	//body.append(bufferStr.substr(firstRN, secondRN));
 	auxStr = bufferStr.substr(firstRN, secondRN - firstRN);
 	int writtenBytes = write(wr_fd, auxStr.c_str(), auxStr.size());
 	if ( writtenBytes != static_cast<int>(auxStr.size())) {
-		//TODO throw exception
+		throw std::runtime_error("Write error");
 	}
 	*content_length += writtenBytes;
 	secondRN += 2;
@@ -115,7 +101,7 @@ std::string HTTPServer::get_temp_file() {
 
 int HTTPServer::read_content_length_body( BufferRequest & bufferRequest, std::string & bufferStr ) {
 	if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
-		//TODO throw exception algo ha ido muy mal
+		throw std::runtime_error("Write error");
 	}
 	bufferRequest.content_length -= bufferStr.size();
 	bufferStr.clear();
@@ -159,11 +145,12 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				if (bufferRequest.request.getErrorCode() != 200) {
 					Response httpResponse;
 					LocationRules & locationRules = *(bufferRequest.request.getLocationRules());
-					if (bufferRequest.request.getErrorCode() == 302) {
+					httpResponse.response_code = bufferRequest.request.getErrorCode();
+					if (httpResponse.response_code == 302) {
 						httpResponse.headers["Location"] = locationRules.getRedirect();
+					} else {
+						Routing::errorResponse(httpResponse, locationRules);
 					}
-					httpResponse.response_code = 405;
-					Routing::errorResponse(httpResponse, locationRules);
 					sendResponse(socket, httpResponse);
 					return 0;
 				}
@@ -180,8 +167,7 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 				bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 				if (bufferRequest.request._body_file_fd == -1) {
 					std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
-					perror("open");
-					std::exit(1);
+					throw std::runtime_error("Open error");
 				}
 
 				if ( bufferRequest.status == FILLING_BODY ) {
@@ -194,7 +180,7 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 			case CHUNKED_BODY:
 				return read_chunked_body(bufferRequest, bufferStr);
 			default:
-				// NUNCA DEBERÍA PASAR
+				// THIS SHOULD NEVER HAPPEN 
 				return -1;
 		}
 	}
@@ -214,10 +200,10 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 	    default :
 			HTTPRequest & httpRequest = bufferRequest.request;
 			std::cout << "Uri: " << httpRequest.getURI() << std::endl;
-			//LocationRules & locationRules = *(bufferRequest.request.getLocationRules());
-			LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, httpRequest);
+			LocationRules & locationRules = *(httpRequest.getLocationRules());
 			Response httpResponse;
-			std::string file_path = Routing::createFilePath(locationRules, httpRequest);
+			// std::string file_path = Routing::createFilePath(locationRules, httpRequest);
+			std::string file_path = httpRequest.getFilePath();
 			int cgi_fd;
 			switch (Routing::typeOfResource(file_path, locationRules)) {
 				case ISCGI:
@@ -228,15 +214,13 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 						httpRequest._body_file_fd = open(httpRequest._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 						if (httpRequest._body_file_fd == -1) {
 							std::cerr << "UNABLE TO OPEN FILE " << httpRequest._body_file_name << std::endl;
-							perror("open");
-							std::exit(1);
+							throw std::runtime_error("Open error");
 						}
 						close(httpRequest._body_file_fd);
 					}
 					cgi_fd = cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
 					if (cgi_fd == -1) {
 						httpResponse.response_code = 500;
-						Routing::errorResponse(httpResponse, locationRules);
 						break;
 					}
 					_bufferedRequests.erase(socket);
@@ -248,10 +232,13 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 					httpResponse = Routing::processFilePath(file_path);//process file        
 					break;
 				default:
-					httpResponse.response_code = 404; // TODO send response 404
+					httpResponse.response_code = 404;
 			}
 		if (!httpRequest._body_file_name.empty()) {
 			cgiManager.eraseFile(httpRequest._body_file_name);
+		}
+		if ( httpResponse.response_code != 200 && httpResponse.response_code != 302 ) {
+			Routing::errorResponse(httpResponse, locationRules);
 		}
 		sendResponse(socket, httpResponse);
 		std::cout << "Cerramos el socket: " << socket << std::endl;

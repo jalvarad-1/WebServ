@@ -40,8 +40,9 @@ short int Routing::typeOfResource(const std::string& path, LocationRules locatio
 {
     struct stat statbuf;
 
-    if (!locationRule.getCgiPass().empty() && \
-                    isCorrectCGIExtension(path, locationRule.getCgiExtension())){
+    if ((!locationRule.getCgiPass().empty() && \
+                    isCorrectCGIExtension(path, locationRule.getCgiExtension())) || \
+					method == "DELETE") {
         return ISCGI;
     }
     if (stat(path.c_str(), &statbuf) != 0)

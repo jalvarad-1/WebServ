@@ -36,11 +36,20 @@ HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverCon
 	}
     int content_lenght = returnContentLength();
     if (content_lenght != -1 && content_lenght > _location_rules->getMaxBodySize()) {
-        _error_code = 404;
+        _error_code = 413;
         return ;
     }
-    _error_code = 200;
 	_file_path = Routing::createFilePath(*_location_rules, *this);
+	if (_method == "DELETE") {
+		_headers["Content-Disposition"] = "filename=\"" + _file_path + "\"";
+		_file_path = _location_rules->getDeleteCGI(); //PATH DEL CGI DE DELETE
+		if (_file_path.empty()) {
+			_error_code = 500;
+			return ;
+		}
+		// WHATEVER DELETE CGI NEEDS
+	}
+    _error_code = 200;
 }
 
 bool HTTPRequest::methodAcceptsBody() const

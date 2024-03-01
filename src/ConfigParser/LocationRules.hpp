@@ -33,7 +33,7 @@ public:
     std::string getIndex() const;
     std::string getCgiExtension() const;
     std::string getCgiPass() const;
-    std::string getDelPass() const;
+    std::string getDeleteCGI() const;
     std::string getKeyValue() const;
     std::string getRedirect() const;
 

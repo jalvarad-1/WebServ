@@ -55,7 +55,7 @@ std::string LocationRules::getCgiExtension() const
     return this->_cgi_extension;
 }
 
-std::string LocationRules::getDelPass() const
+std::string LocationRules::getDeleteCGI() const
 {
     return _delete_pass;
 }

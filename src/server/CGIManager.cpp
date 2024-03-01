@@ -130,6 +130,7 @@ std::string obtainFilename(const std::string& contentDisposition) {
 int CGIManager::executeCGI(std::string cgiBinary_path, std::string file_path, HTTPRequest & httpRequest, int socket) {
 	BufferCGI bufferCGI;
 	
+	std::cout << "adsasdas" << std::endl;
 	std::map<std::string, std::string> env;
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();

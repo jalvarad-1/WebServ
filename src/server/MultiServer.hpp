@@ -24,12 +24,10 @@ struct fd_info{//
 class MultiServer
 {
     private:
-        // std::vector<HTTPServer*> servers;
         std::vector<struct pollfd> poll_fds;
 		std::map<int,fd_info> fd_index;
 
     public:
-        /// TODO to decide type of variable to pass to Constructor
         std::vector<struct pollfd> getFds();
         void setFds(struct pollfd);
         MultiServer(const std::vector<ServerConfig>& serverConfigs);

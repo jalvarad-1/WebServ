@@ -1,7 +1,8 @@
 CXX := g++
 NAME := webserv
 # CXXFLAGS := -Wall -Wextra -std=c++98 -g3
-CXXFLAGS := -Wall -Wextra -Werror -pedantic -std=c++98 -fsanitize=address
+CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -fsanitize=address
+CACHEDIR := .cache
 SRCS =	src/main.cpp\
 		src/server/HTTPServer.cpp\
 		src/server/ListeningSocket.cpp\
@@ -33,6 +34,7 @@ NO_COLOR = \033[0m
 all: $(NAME)
 
 $(NAME): $(OBJS)
+	@mkdir -p -m777 $(CACHEDIR)
 	@$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
 	@echo "\033[0;32mCompiled\033[0m"
 

@@ -26,7 +26,6 @@ struct BufferRequest {
 class HTTPServer
 {
     private:
-        char _buffer[30000]; // TODO C++11
         int _new_socket;
         ListeningSocket * _socket;
         ServerConfig _serverConfig;

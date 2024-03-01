@@ -108,6 +108,25 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	close(outSocket);
 }
 
+std::string obtainFilename(const std::string& contentDisposition) {
+	std::cout << "Soy el env:" << contentDisposition << std::endl;
+    size_t posInicio = contentDisposition.find("filename=");
+    if (posInicio != std::string::npos) {
+        posInicio += 9;
+        size_t posComillasInicio = contentDisposition.find("\"", posInicio);
+        size_t posComillasFin = contentDisposition.find("\"", posComillasInicio + 1);
+        if (posComillasInicio != std::string::npos 
+				&& posComillasFin != std::string::npos) {
+            return contentDisposition.substr(posComillasInicio + 1, posComillasFin - posComillasInicio - 1);
+        }
+		else {
+			std::cout << "Soy el env:" << contentDisposition.substr(posComillasInicio + 1, posComillasFin - posComillasInicio - 1) << std::endl;
+			return "";
+		}
+    }
+    return "";
+}
+
 int CGIManager::executeCGI(std::string cgiBinary_path, std::string file_path, HTTPRequest & httpRequest, int socket) {
 	BufferCGI bufferCGI;
 	
@@ -115,8 +134,14 @@ int CGIManager::executeCGI(std::string cgiBinary_path, std::string file_path, HT
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();
     env["PATH_INFO"] = httpRequest.getPathInfo();
-	env["filename"] = "archivo.txt";
-	
+	env["Content-Disposition"] = httpRequest.getHeader("Content-Disposition");
+	std::cout << "Soy el env:" << env["Content-Disposition"] << std::endl;
+	if (env["Content-Disposition"] != "") {
+		env["filename"] = obtainFilename(env["Content-Disposition"]);
+	}
+
+	std::cout << "Este es el filename: " << env["filename"] << " :Aqui termina el filename " << std::endl;
+
 	std::vector<std::string> args;
 	std::cout << "Binario: " << cgiBinary_path << std::endl;
 	CGI cgi(cgiBinary_path);

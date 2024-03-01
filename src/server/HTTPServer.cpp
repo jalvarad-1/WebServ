@@ -7,7 +7,7 @@
 
 int HTTPServer::temp_file_counter = 0;
 
-std::string HTTPServer::temp_file_path = "./waifu";
+std::string HTTPServer::temp_file_path = "./.cache/WAIFU";
 
 BufferRequest::BufferRequest( void ) {
 	content_length = 0;
@@ -19,13 +19,9 @@ HTTPServer::HTTPServer(int domain, int service, int protocol,
             _serverConfig(serverConfig)
 {
     _socket = new ListeningSocket(domain, service, protocol, port, interface, bklg);
-	for (int i = 0; i < 30000; i++) {
-        _buffer[i] = 0;
-    }
 }
 
-
-ListeningSocket * HTTPServer::get_socket()
+ListeningSocket * HTTPServer::getSocket()
 {
     return _socket;
 }
@@ -37,14 +33,23 @@ int HTTPServer::getListeningPort()
 
 int HTTPServer::acceptConnection()
 {
-    struct sockaddr_in address = get_socket()->get_address();
+    struct sockaddr_in address = getSocket()->getAddress();
     int addrlen = sizeof(address);
     // std::cout << "Puerto usado: " << get_socket()->get_sock() << std::endl;
-    _new_socket = accept(get_socket()->get_sock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    _new_socket = accept(getSocket()->getSock(), (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (_new_socket == -1)
         std::cout << "Error" << std::endl;
     std::cout << "\nRecibimos conexion socket: " << _new_socket << std::endl;
     return (_new_socket);
+}
+
+short int HTTPServer::getRequestStatus(BufferRequest & bufferRequest) {
+	if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked")
+		return CHUNKED_BODY;
+	bufferRequest.content_length = bufferRequest.request.returnContentLength();
+	if ( bufferRequest.content_length != -1 )	
+		return FILLING_BODY;
+	return FULL_REQUEST;
 }
 
 ssize_t HTTPServer::readFromFd( int socket, std::string & bufferStr ) {
@@ -67,15 +72,8 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_le
 		return false ;
 	char *pEnd;
 	std::string auxStr = bufferStr.substr(0, firstRN);
-	std::cout << "Number is " << auxStr << std::endl;
 	double characterN;
-	/// NUNCA FUE 8000 /// curl -H "Transfer-Encoding: chunked" -d @input http://localhost:8000/directory/youpi.bla -vvv
 	characterN = static_cast<double>(std::strtol(auxStr.c_str(), &pEnd, 16));
-	std::cout << "NUMBER IS " << characterN << std::endl;
-	///
-	if (*pEnd != '\0') {
-		//TODO throw exception
-	}
 	if (characterN == 0)
 		return true ;
 	firstRN += 2;
@@ -83,14 +81,10 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_le
 	if (secondRN == std::string::npos)
 		return false ;
 	std::cout << "YAY I FOUND THE END" << std::endl;
-	if (static_cast<double>(secondRN) != characterN) {
-		//TODO throw exception
-	}
-	//body.append(bufferStr.substr(firstRN, secondRN));
 	auxStr = bufferStr.substr(firstRN, secondRN - firstRN);
 	int writtenBytes = write(wr_fd, auxStr.c_str(), auxStr.size());
 	if ( writtenBytes != static_cast<int>(auxStr.size())) {
-		//TODO throw exception
+		throw std::runtime_error("Write error");
 	}
 	*content_length += writtenBytes;
 	secondRN += 2;
@@ -98,10 +92,31 @@ bool HTTPServer::parseChunk(std::string & bufferStr, int wr_fd, int * content_le
 	return parseChunk(bufferStr, wr_fd, content_length) ;
 }
 
-std::string HTTPServer::get_temp_file() {
+std::string HTTPServer::getTempFile() {
 	std::stringstream ret;
 	ret << temp_file_path << "_" << temp_file_counter++;
 	return ret.str();
+}
+
+int HTTPServer::readContentLengthBody( BufferRequest & bufferRequest, std::string & bufferStr ) {
+	if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
+		throw std::runtime_error("Write error");
+	}
+	bufferRequest.content_length -= bufferStr.size();
+	bufferStr.clear();
+	if (bufferRequest.content_length <= 0) {
+		close(bufferRequest.request._body_file_fd);
+		return 1;
+	}
+	return -1 ;
+}
+
+int HTTPServer::readChunkedBody( BufferRequest & bufferRequest, std::string & bufferStr ) {
+	if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
+		close(bufferRequest.request._body_file_fd);
+		return 1 ;
+	}
+	return -1 ;
 }
 
 int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
@@ -119,91 +134,52 @@ int HTTPServer::handleRead( int socket, BufferRequest & bufferRequest ) {
 					return -1 ;
 				}
 				rnrn += 4;
-				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn));
+				bufferRequest.request = HTTPRequest(bufferStr.substr(0, rnrn), _serverConfig);
 				std::cout << "\n---Request---\n" << bufferStr.substr(0, rnrn) << "---" << std::endl;
-				if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked") {
-					bufferRequest.status = CHUNKED_BODY;
-					bufferStr.erase(0, rnrn);
-					bufferRequest.request._body_file_name = get_temp_file();
-					std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
-					bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-					if (bufferRequest.request._body_file_fd == -1) {
-						std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
-						perror("open");
-						std::exit(1);
-					}
-					if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length ))  {
-						if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
-							Response httpResponse;
-							httpResponse.response_code = 413;
-							Routing::errorResponse(httpResponse, locationRules);
-							sendResponse(socket, httpResponse);
-							return 0;
-						}
-						close(bufferRequest.request._body_file_fd);
-						return 1 ;
-					}
-					if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
-						Response httpResponse;
-						httpResponse.response_code = 413;
-						Routing::errorResponse(httpResponse, locationRules);
-						sendResponse(socket, httpResponse);
-						return 0;
-					}
-					return -1 ;
-				}
-				bufferRequest.content_length = bufferRequest.request.returnContentLength();
-				if ( bufferRequest.content_length < 0 )	
-					return 1 ;
-				bufferRequest.status = FILLING_BODY;
+				
+				// CLEAN BUFFER
 				bufferStr.erase(0, rnrn);
-				locationRules = Routing::determineResourceLocation(_serverConfig, bufferRequest.request);
-				if ( bufferRequest.content_length > locationRules.getMaxBodySize() ) {
+
+				// CHECK REQUEST ERRORS
+				if (bufferRequest.request.getErrorCode() != 200) {
 					Response httpResponse;
-					httpResponse.response_code = 413;
-					Routing::errorResponse(httpResponse, locationRules);
+					LocationRules & locationRules = *(bufferRequest.request.getLocationRules());
+					httpResponse.response_code = bufferRequest.request.getErrorCode();
+					if (httpResponse.response_code == 302) {
+						httpResponse.headers["Location"] = locationRules.getRedirect();
+					} else {
+						Routing::errorResponse(httpResponse, locationRules);
+					}
 					sendResponse(socket, httpResponse);
 					return 0;
 				}
-				bufferRequest.request._body_file_name = get_temp_file();
+
+				bufferRequest.status = getRequestStatus(bufferRequest);
+
+				if ( bufferRequest.status == FULL_REQUEST ) {
+					return 1;
+				}
+
+				//GENERATE FILE FOR BODY
+				bufferRequest.request._body_file_name = getTempFile();
 				std::cerr << "VOY A CREAR EL ARCHIVO " << bufferRequest.request._body_file_name << " PARA LA REQUEST DE ARRIBA" << std::endl;
 				bufferRequest.request._body_file_fd = open(bufferRequest.request._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 				if (bufferRequest.request._body_file_fd == -1) {
 					std::cerr << "UNABLE TO OPEN FILE " << bufferRequest.request._body_file_name << std::endl;
-					perror("open");
-					std::exit(1);
+					throw std::runtime_error("Open error");
 				}
-				if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
-					//TODO throw exception algo ha ido muy mal
+
+				if ( bufferRequest.status == FILLING_BODY ) {
+					return readContentLengthBody(bufferRequest, bufferStr);
+				} else {
+					return readChunkedBody(bufferRequest, bufferStr);
 				}
-				bufferRequest.content_length -= bufferStr.size();
-				bufferStr.clear();
-				if (bufferRequest.content_length <= 0) {
-					close(bufferRequest.request._body_file_fd);
-					return 1;
-				}
-				return -1 ;
 			case FILLING_BODY:
-				// COMPROBAMOS EL CONTENT_LENGTH Y ACTUAMOS SEGÚN
-				if (write(bufferRequest.request._body_file_fd, bufferStr.c_str(), bufferStr.size()) != static_cast<int>(bufferStr.size())) {
-					//TODO throw exception algo ha ido muy mal
-				}
-				bufferRequest.content_length -= bufferStr.size();
-				bufferStr.clear();
-				if (bufferRequest.content_length <= 0) {
-					close(bufferRequest.request._body_file_fd);
-					return 1;
-				}
-				return -1 ;
+				return readContentLengthBody(bufferRequest, bufferStr);
 			case CHUNKED_BODY:
-				// BUSCAMOS DOS RN Y APPENDEAMOS AL BODY DESPUÉS DE PASAR POR UNA FUNCIÓN DE PARSEO
-				if (parseChunk(bufferStr, bufferRequest.request._body_file_fd, &bufferRequest.content_length))  {
-					close(bufferRequest.request._body_file_fd);
-					return 1 ;
-				}
-				return -1 ;
+				return readChunkedBody(bufferRequest, bufferStr);
 			default:
-				// NUNCA DEBERÍA PASAR
+				// THIS SHOULD NEVER HAPPEN 
 				return -1;
 		}
 	}
@@ -221,45 +197,25 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 			_bufferedRequests.erase(socket);
 	        return 0 ;
 	    default :
-			HTTPRequest httpRequest = bufferRequest.request;
+			HTTPRequest & httpRequest = bufferRequest.request;
 			std::cout << "Uri: " << httpRequest.getURI() << std::endl;
-			LocationRules locationRules = Routing::determineResourceLocation(_serverConfig, httpRequest);
+			LocationRules & locationRules = *(httpRequest.getLocationRules());
 			Response httpResponse;
-			if (!Routing::isAllowedMethod(httpRequest.getMethod(), locationRules.getAllowedMethods())) {
-				// TODO: devolver response 405
-				std::cerr << "METHOD NOT ALLOWED" << std::endl;
-				httpResponse.response_code = 405;
-				Routing::errorResponse(httpResponse, locationRules);
-				if (!httpRequest._body_file_name.empty()) {
-					cgiManager.eraseFile(httpRequest._body_file_name);
-				}
-				sendResponse(socket, httpResponse);
-				std::cout << "Cerramos el socket: " << socket << std::endl;
-				close(socket);
-				_bufferedRequests.erase(socket);
-				return 0 ;
-			}
-			if (!locationRules.getRedirect().empty()) {
-				// TODO: devolver response 302
-				// response.response_code = 302;
-				// response.headers["Location"] = locationRule.getRedirect();
-				std::cerr << "REDIRECTIOOOOOOOOOOON" << std::endl;
-				return 0 ;
-			}
-			std::string file_path = Routing::createFilePath(locationRules, httpRequest);
+			// std::string file_path = Routing::createFilePath(locationRules, httpRequest);
+			std::string file_path = httpRequest.getFilePath();
 			int cgi_fd;
 			switch (Routing::typeOfResource(file_path, locationRules)) {
 				case ISCGI:
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
 					if (httpRequest._body_file_name.empty()) {
-						httpRequest._body_file_name = get_temp_file();
+						httpRequest._body_file_name = getTempFile();
 						std::cerr << "VOY A CREAR EL ARCHIVO " << httpRequest._body_file_name << " PORQUE MI CGI NO TIENE BODY" << std::endl;
 						httpRequest._body_file_fd = open(httpRequest._body_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 						if (httpRequest._body_file_fd == -1) {
 							std::cerr << "UNABLE TO OPEN FILE " << httpRequest._body_file_name << std::endl;
-							perror("open");
-							std::exit(1);
+							throw std::runtime_error("Open error");
 						}
+						close(httpRequest._body_file_fd);
 					}
 					cgi_fd = cgiManager.executeCGI(locationRules.getCgiPass(), file_path, httpRequest, socket);
 					if (cgi_fd == -1) {
@@ -275,10 +231,13 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 					httpResponse = Routing::processFilePath(file_path);//process file        
 					break;
 				default:
-					httpResponse.response_code = 404; // TODO send response 404
+					httpResponse.response_code = 404;
 			}
 		if (!httpRequest._body_file_name.empty()) {
 			cgiManager.eraseFile(httpRequest._body_file_name);
+		}
+		if ( httpResponse.response_code != 200 && httpResponse.response_code != 302 ) {
+			Routing::errorResponse(httpResponse, locationRules);
 		}
 		sendResponse(socket, httpResponse);
 		std::cout << "Cerramos el socket: " << socket << std::endl;
@@ -348,7 +307,7 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
     std::string date = getDate();
     std::stringstream response;
 
-    response << "HTTP/1.1 " << httpResponse.response_code << " " << response_codes.get_code_string(httpResponse.response_code) << "\r\n";
+    response << "HTTP/1.1 " << httpResponse.response_code << " " << response_codes.getCodeString(httpResponse.response_code) << "\r\n";
     response << "Content-Type: " << getContentType(httpResponse.file_path) << "\r\n";
     response << "Content-Length: " << httpResponse.string_body.size() << "\r\n";
 	for ( std::map<std::string, std::string>::iterator iter = httpResponse.headers.begin(); iter != httpResponse.headers.end(); iter++ ) {

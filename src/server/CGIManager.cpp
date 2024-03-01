@@ -74,16 +74,16 @@ Response parse_output(std::string output) {
             ret.headers[linea.substr(0, linea.find(":"))] = linea.substr(linea.find(":") + 2);
             prevPos = pos + 1;
         }
-    } 
-	else {
-    	ret.string_body = output;
+    }
+    else {
+        ret.string_body = output;
 	}
 	return ret;
 }
 
 
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
-	std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
+	//std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
 	ResponseCode response_codes;
 	std::stringstream response;
 	Response ret = parse_output(responseStr);
@@ -104,12 +104,7 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	}
 	response << "\r\n";
 	response << ret.string_body;
-	// std::cout << "\n---Response---\n" << response.str() << "---" << std::endl;
-    // send(outSocket, responseStr.c_str(), responseStr.size(), 0);
-	std::cout << response.str().c_str() << std::endl;
 	send(outSocket, response.str().c_str(), response.str().size(), 0);
-	//shutdown(outSocket, SHUT_RDWR);
-	//std::cout << "Cerramos el socket maria: " << outSocket << std::endl;
 	close(outSocket);
 }
 
@@ -119,9 +114,9 @@ int CGIManager::executeCGI(std::string cgiBinary_path, std::string file_path, HT
 	std::map<std::string, std::string> env;
     env["REQUEST_METHOD"] = httpRequest.getMethod();
     env["SERVER_PROTOCOL"] = httpRequest.getVersion();
-    env["PATH_INFO"] = cgiBinary_path; // TODO Review the meaning of PATH_INFO
+    env["PATH_INFO"] = httpRequest.getPathInfo();
 	env["filename"] = "archivo.txt";
-
+	
 	std::vector<std::string> args;
 	std::cout << "Binario: " << cgiBinary_path << std::endl;
 	CGI cgi(cgiBinary_path);
@@ -132,8 +127,6 @@ int CGIManager::executeCGI(std::string cgiBinary_path, std::string file_path, HT
 	cgi.set_env(env);
 	cgi.set_args(args);
 	
-	// TODO Control de errores
-	std::cout << "Ejecutamos CGI" << std::endl;
 	int outFd = cgi.exec_cgi(httpRequest._body_file_name, &bufferCGI.pid);
 	if (outFd != -1) {
 		bufferCGI.out_socket = socket;

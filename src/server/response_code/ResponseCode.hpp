@@ -9,7 +9,7 @@ class ResponseCode
 private:
     std::map<int, std::string> _codes;
 public:
-    std::string get_code_string(int code);
+    std::string getCodeString(int code);
     ResponseCode();
     ~ResponseCode();
 };

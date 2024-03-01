@@ -140,7 +140,16 @@ namespace simpleParser {
                 return expectLocationDefinition(server);
                 break;
             
-            case LISTEN ... REDIRECT:
+            case LISTEN:
+            case SERVER_NAMES:
+            case ERROR_PAGES:
+            case ROOT:
+            case INDEX:
+            case MAX_BODY_SIZE:
+            case AUTO_INDEX:
+            case ALLOWED_METHODS:
+            case CGI_PASS:
+            case REDIRECT:
                 return expectAttributesDefinition(server, "default", type.mType);
                 break;
             

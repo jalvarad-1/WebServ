@@ -26,7 +26,6 @@ struct BufferRequest {
 class HTTPServer
 {
     private:
-        char _buffer[30000]; // TODO C++11
         int _new_socket;
         ListeningSocket * _socket;
         ServerConfig _serverConfig;
@@ -44,14 +43,16 @@ class HTTPServer
         // int sendResponse(int socket, HTTPRequest & request, CGIManager & cgiManager);
 		int sendResponse(int socket, Response & httpResponse);
         void checkSock(std::vector<struct pollfd> &poll_fds, std::vector<struct fd_status> &status, size_t i);
-        ListeningSocket * get_socket();
+        ListeningSocket * getSocket();
         int getListeningPort();
 
 		int handleEvent( int socket, CGIManager & cgiManager ) ;
 		int handleRead( int socket, BufferRequest & bufferRequest ) ;
 		ssize_t readFromFd( int socket, std::string & bufferStr ) ;
 		bool parseChunk(std::string & bufferStr, int wr_fd, int * content_length);
-
-		std::string get_temp_file();
+		short int getRequestStatus(BufferRequest & bufferRequest);
+		int readContentLengthBody( BufferRequest & bufferRequest, std::string & bufferStr );
+		int readChunkedBody( BufferRequest & bufferRequest, std::string & bufferStr );
+		std::string getTempFile();
 };
 #endif

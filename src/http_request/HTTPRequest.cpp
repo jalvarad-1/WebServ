@@ -14,15 +14,33 @@ void trim(std::string& s)
         s = s.substr(start, end - start + 1);
 }
 
-HTTPRequest::HTTPRequest(void) {
+HTTPRequest::HTTPRequest(void) {//Dummy constructor
 	_body_file_fd = 0;
 }
 
-HTTPRequest::HTTPRequest(const std::string& raw_request)
+HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverConfig)
 {
-    if (!parse(raw_request))
-        _error_message = "Failed to parse the request.";
+    if (!parse(raw_request)) {
+        _error_code = 400;
+		return ;
+	}
 	_body_file_fd = 0;
+    _location_rules = &Routing::determineResourceLocation(serverConfig, *this);
+    if (!Routing::isAllowedMethod(_method, _location_rules->getAllowedMethods())) {
+		_error_code = 405;
+		return ;
+	}
+	if (!_location_rules->getRedirect().empty()) {
+        _error_code = 302;
+        return ;
+	}
+    int content_lenght = returnContentLength();
+    if (content_lenght != -1 && content_lenght > _location_rules->getMaxBodySize()) {
+        _error_code = 404;
+        return ;
+    }
+    _error_code = 200;
+	_file_path = Routing::createFilePath(*_location_rules, *this);
 }
 
 bool HTTPRequest::methodAcceptsBody() const
@@ -43,14 +61,12 @@ bool HTTPRequest::parse(const std::string& raw_request) {
     std::istringstream ss(raw_request);
     std::string line;
 
-    // std::cout << "\n\n" << raw_request << std::endl;
-
-    // 2. Analiza la línea de solicitud (por ejemplo: GET /index.html HTTP/1.1)
     std::getline(ss, line);
     std::istringstream request_line(line);
     request_line >> _method >> _uri >> _http_version;
-    _method = _method.empty()? "GET": _method;
-    _uri = _uri.empty() ? "/": _uri;
+	if ( _method.empty() || _uri.empty() || _http_version.compare("HTTP/1.1") ) {
+		return false ;
+	}
     _http_version = "HTTP/1.1";
     std::cout << "parseando linea request" << std::endl ;
     while (std::getline(ss, line) && !line.empty() && line != "\r")
@@ -72,18 +88,8 @@ bool HTTPRequest::parse(const std::string& raw_request) {
             _headers[header_name] = header_value;
         else
         {
-            std::cout << "1" << std::endl; //TODO Mensaje más claro
             return false;
         }
-    }
-    if (methodAcceptsBody())
-    {
-        // se utiliza ostringstream por temas de performance, ya que no creas una nueva cadena en cada iteración como se haría si hiciera _body += line
-        std::ostringstream body_stream;
-        while (std::getline(ss, line))
-            body_stream << line << "\n";
-        _body = body_stream.str();
-
     }
     return true;// devuelve true si todo salió bien, o false si hubo algún error
 }
@@ -115,9 +121,9 @@ std::string HTTPRequest::getBody() const
     return _body;
 }
 
-std::string HTTPRequest::getErrorMessage() const
+int HTTPRequest::getErrorCode() const
 {
-        return _error_message;
+        return _error_code;
 }
 
 std::map<std::string, std::string> HTTPRequest::getHeaders() const {
@@ -128,6 +134,17 @@ std::string HTTPRequest::getPathInfo() const {
     return _path_info;
 }
 
+std::string HTTPRequest::getFilePath() const {
+    return _file_path;
+}
+
+
+LocationRules * HTTPRequest::getLocationRules() const {
+	return _location_rules;
+}
+
 void HTTPRequest::setPathInfo(std::string path_info) {
+    if (path_info.empty())
+        path_info += " ";
     _path_info = path_info;
 }

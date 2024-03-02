@@ -24,4 +24,4 @@ curl http://localhost:8002/directory/Yeah #Not Found
 
 curl http://localhost:8002/directory/Yeah/not_happy.bad_extension
 
-curl -X POST http://localhost:8002/directory/youpi.bla -d @input
+curl -X POST http://localhost:8002/directory/youpi.bla -d @input_test

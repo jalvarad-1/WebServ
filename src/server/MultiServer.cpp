@@ -38,6 +38,8 @@ void MultiServer::run() {
 					case LISTENING_PORT:
 						std::cerr << "RECIBIMOS DATOS POR EL listening FD " << poll_fds[i].fd << std::endl;
 						socket = current_fd.server->acceptConnection();
+						if (socket == -1)
+							break;
 						poll_fds.push_back(createPollfd(socket));
 						fd_index[socket] = fd_info(CONNECTION_SOCKET, current_fd.server);
 						continue ;

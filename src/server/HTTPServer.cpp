@@ -206,7 +206,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 			// std::string file_path = Routing::createFilePath(locationRules, httpRequest);
 			std::string file_path = httpRequest.getFilePath();
 			int cgi_fd;
-			switch (Routing::typeOfResource(file_path, locationRules)) {
+			switch (Routing::typeOfResource(file_path, locationRules, httpRequest.getMethod())) {
 				case ISCGI:
 					std::cerr << "SÍ QUE SOY UN CGI" << std::endl;
 					if (httpRequest._body_file_name.empty()) {
@@ -231,6 +231,9 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 					break;
 				case ISFILE:
 					httpResponse = Routing::processFilePath(file_path);//process file        
+					break;
+				case ISNAM:
+					httpResponse.response_code = 405;
 					break;
 				default:
 					std::cerr << "NO ES NAH" << std::endl;

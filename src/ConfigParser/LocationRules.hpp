@@ -18,6 +18,7 @@ private:
     std::string                         _index;
     std::string                         _cgi_pass;
     std::string                         _cgi_extension;
+    std::string                         _delete_pass;
     std::string                         _redirect;
 
 public:
@@ -32,6 +33,7 @@ public:
     std::string getIndex() const;
     std::string getCgiExtension() const;
     std::string getCgiPass() const;
+    std::string getDeleteCGI() const;
     std::string getKeyValue() const;
     std::string getRedirect() const;
 
@@ -42,6 +44,7 @@ public:
     void setAutoIndex(bool auto_index);
     bool setAllowedMethod(std::string allowedMethod);
     bool setCGIpass(std::string cgi_extension, std::string cgi_pass);
+    bool setDelpass(std::string delete_pass);
     void setKeyValue(std::string key_value);
     bool setRedirect(std::string redirect);
 

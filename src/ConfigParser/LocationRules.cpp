@@ -55,6 +55,10 @@ std::string LocationRules::getCgiExtension() const
     return this->_cgi_extension;
 }
 
+std::string LocationRules::getDeleteCGI() const
+{
+    return _delete_pass;
+}
 std::string LocationRules::getRedirect() const
 {
     return this->_redirect;
@@ -117,6 +121,14 @@ bool LocationRules::setCGIpass(std::string cgi_extension, std::string cgi_pass)
         return false;
     _cgi_pass = cgi_pass;
     _cgi_extension = cgi_extension;
+    return true;
+}
+
+bool LocationRules::setDelpass(std::string delete_pass)
+{
+    if (_delete_pass != "" )
+        return false;
+    _delete_pass = delete_pass;
     return true;
 }
 

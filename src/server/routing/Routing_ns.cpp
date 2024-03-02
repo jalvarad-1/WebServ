@@ -36,21 +36,24 @@ std::string Routing::removeKeyValue(std::string toRemove, std::string str)
     return str.substr(pos + toRemove.length());
 }
 
-short int Routing::typeOfResource(const std::string& path, LocationRules locationRule)
+short int Routing::typeOfResource(const std::string& path, LocationRules locationRule, std::string method)
 {
     struct stat statbuf;
 
-    if (!locationRule.getCgiPass().empty() && \
-                    isCorrectCGIExtension(path, locationRule.getCgiExtension())){
+    if ((!locationRule.getCgiPass().empty() && \
+                    isCorrectCGIExtension(path, locationRule.getCgiExtension())) || \
+					method == "DELETE") {
         return ISCGI;
     }
     if (stat(path.c_str(), &statbuf) != 0)
-        return false;
+        return ISNF;
+    else if (method != "GET")
+        return ISNAM; 
     else if (S_ISREG(statbuf.st_mode))
         return ISFILE; // Verifica si es un archivo regular
     else if (S_ISDIR(statbuf.st_mode))
         return ISDIR;
-    return false;
+    return ISNAM;
 }
 
 Response Routing::processFilePath(std::string resource_path)

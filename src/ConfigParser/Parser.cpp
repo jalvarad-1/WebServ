@@ -14,6 +14,7 @@ namespace simpleParser {
         mTypes["auto_index"] = Type("auto_index", AUTO_INDEX);
         mTypes["allowed_methods"] = Type("allowed_methods", ALLOWED_METHODS);
         mTypes["cgi_pass"] = Type("cgi_pass", CGI_PASS);
+        mTypes["delete_pass"] = Type("delete_pass", DELETE_PASS);
         mTypes["redirect"] = Type("redirect", REDIRECT);
     }
 
@@ -117,6 +118,9 @@ namespace simpleParser {
                     if (expectOperator(";").mType != EMPTY)
                         return false;
                     ret = server.locations[key_value].setCGIpass( tmp, mCurrentToken->mText );
+                    break;
+                case DELETE_PASS:
+                    ret = server.locations[key_value].setDelpass( mCurrentToken->mText );
                     break;
                 case REDIRECT:
                     ret = server.locations[key_value].setRedirect( mCurrentToken->mText );

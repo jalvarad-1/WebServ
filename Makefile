@@ -20,11 +20,6 @@ SRCS =	src/main.cpp\
 
 OBJS = $(SRCS:.cpp=.o)
 
-CGI_BINARIES =	cgi_bin/cgiPrograms/pythonCGI.cpp\
-				cgi_bin/cgiPrograms/bashCGI.cpp\
-
-CGI_EXECS = $(CGI_BINARIES:.cpp=)
-
 # COLORS #
 
 RED = \033[0;31m
@@ -55,10 +50,5 @@ clean:
 fclean: clean
 	@rm -f $(NAME)
 	@echo "\033[0;35mFclean done\033[0m"
-
-binaries: $(CGI_EXECS)
-
-%: %.cpp
-	@$(CXX) $(CXXFLAGS) -o $@ $< && mv $@ cgi_bin
 
 re: fclean all

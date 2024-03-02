@@ -318,7 +318,7 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
 	}
     response << "\r\n";
 	response << httpResponse.string_body;
-	std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
+	// std::cout << "\n---Response---\n" << response.str() <<  "---" << std::endl;
     send(socket, response.str().c_str(), response.str().size(), 0);
     return -1;
 }

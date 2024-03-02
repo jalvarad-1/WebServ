@@ -30,18 +30,10 @@
 			<a class="btn btn-primary" href="http://localhost:5000" target="_blank">/directory</a>
 		</div>
 
-		<!-- Formulario para subir archivos -->
-		<!-- <div class="col-md-12 mb-4">
-			<form method="post" action="cgi_bin/upload.sh">
-				<input type="file" class="form-control-file" id="archivo">
-				<button class="btn btn-primary" type="submit">Upload file</buttom>
-			</form>
-		</div> -->
-
 		<!-- Formulario para eliminar archivos -->
 		<div class="col-md-12 mb-4">
 			<form id="deleteForm">
-				<label for="idToDelete">ID a eliminar:</label>
+				<label for="idToDelete">File a eliminar:</label>
 				<input type="text" id="idToDelete" name="idToDelete" required>
 				<button class="btn btn-primary" type="button" onclick="eliminarElemento()">Eliminar</button>
 			</form>
@@ -50,36 +42,27 @@
 
 
 		<form id="uploadForm">
-			<label for="File">Seleccionar archivo:</label>
 			<input type="file" id="File" name="File" accept=".txt">
-			<button type="button" onclick="uploadFile()">Subir File</button>
+			<button type="button" class="btn btn-primary" onclick="uploadFile()">Subir File</button>
 		</form>
 	</div>
 
 	<script>
 		function eliminarElemento() {
-			// Obtener el valor del campo ID a eliminar
 			var idToDelete = document.getElementById("idToDelete").value;
-
-			// Realizar la solicitud DELETE usando fetch (puedes adaptar esto según tu backend)
-			// fetch('https://localhost:5000/' {
-
 
 			const url = 'http://localhost:5000/directory/' + idToDelete;
 
 			fetch(url, {
 				method: 'DELETE',
 				headers: {
-					'Content-Type': 'application/json', // Ajusta según tus necesidades
-					// Puedes incluir otros encabezados si es necesario
+					'Content-Type': 'application/json',
 				},
-				// body: JSON.stringify({}), // Puedes enviar datos en el cuerpo si es necesario
 			})
 				.then(response => {
 					if (!response.ok) {
 						throw new Error(`La petición falló con el código ${response.status}`);
 					}
-					// Realiza las acciones necesarias si la petición fue exitosa
 					console.log('Petición DELETE exitosa');
 				})
 				.catch(error => console.error('Error:', error));
@@ -122,4 +105,3 @@
 </body>
 
 </html>
-<!-- <a class="btn btn-primary" href="http://localhost:5000" target="_blank">/directory</a> -->

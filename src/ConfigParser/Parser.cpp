@@ -36,14 +36,12 @@ namespace simpleParser {
             server.locations[key_value].setKeyValue(key_value);
             mCurrentToken++;
             if (expectOperator("{").mType != EMPTY) {
-                std::cout << "Location block found" << std::endl;
-
                 Type type;
                 while(expectOperator("}").mType == EMPTY) {
                     type = expectType();
 
                     if (!expectAttributesDefinition(server , key_value, type.mType)) {
-                        std::cout << "Location no configuarado correctamente" << std::endl;
+                        std::cerr << "Webserv Error: Location not configured properly" << std::endl;
                         return false;
                     }
                 }
@@ -173,7 +171,7 @@ namespace simpleParser {
                 while(expectOperator("}").mType == EMPTY) {
 
                     if (!expectServerAttributesDefinition(server)) {
-                        std::cerr << "Webserv Error: Server non proper configuration" << std::endl;
+                        std::cerr << "Webserv Error: Server not properly configured" << std::endl;
                         return false;
                     }
                 }

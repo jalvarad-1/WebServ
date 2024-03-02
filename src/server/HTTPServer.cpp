@@ -44,9 +44,11 @@ int HTTPServer::acceptConnection()
 }
 
 short int HTTPServer::getRequestStatus(BufferRequest & bufferRequest) {
+	std::cerr << "Voy a comprobar el tipo de body en la request" << std::endl;
 	if (bufferRequest.request.getHeader("Transfer-Encoding") == "chunked")
 		return CHUNKED_BODY;
 	bufferRequest.content_length = bufferRequest.request.returnContentLength();
+	std::cerr << bufferRequest.request.returnContentLength() << std::endl;
 	if ( bufferRequest.content_length != -1 )	
 		return FILLING_BODY;
 	return FULL_REQUEST;
@@ -234,6 +236,7 @@ int HTTPServer::handleEvent( int socket, CGIManager & cgiManager ) {
 					httpResponse.response_code = 405;
 					break;
 				default:
+					std::cerr << "NO ES NAH" << std::endl;
 					httpResponse.response_code = 404;
 			}
 		if (!httpRequest._body_file_name.empty()) {

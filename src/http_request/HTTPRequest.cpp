@@ -35,7 +35,8 @@ HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverCon
         return ;
 	}
     int content_lenght = returnContentLength();
-    if (content_lenght != -1 && content_lenght > _location_rules->getMaxBodySize()) {
+    if (content_lenght != -1 && _location_rules->getMaxBodySize() != 0 && content_lenght > _location_rules->getMaxBodySize()) {
+        std::cerr << "MAX BODY SIZE: " << _location_rules->getMaxBodySize() << std::endl;
         _error_code = 413;
         return ;
     }

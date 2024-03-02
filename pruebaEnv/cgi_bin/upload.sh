@@ -21,6 +21,7 @@ while IFS= read -r input_data; do
     echo "$input_data" >> uploaded_files/$filename;
 done
 
+
 # while IFS= read -r input_data; do
 #     echo "$input_data" >> uploaded_files/$filename;
 # done
@@ -28,6 +29,8 @@ done
 # Imprimir el mensaje utilizando el argumento
 # echo -e $input_data > uploaded_files/$filename;
 # echo -e $input_data
+
+# echo "Soy el pwd:" 
 
 if [ $? -ne 0 ]; then
   echo -e "Status: 404 Not found"

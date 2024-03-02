@@ -49,10 +49,10 @@
 
 
 
-		<form id="myForm">
-			<!-- Añade los campos de tu formulario aquí -->
-			<input type="file" id="fileInput" name="file">
-			<input type="submit" value="Enviar" onclick="submitForm(event)">
+		<form id="uploadForm">
+			<label for="File">Seleccionar archivo:</label>
+			<input type="file" id="File" name="File" accept=".txt">
+			<button type="button" onclick="uploadFile()">Subir File</button>
 		</form>
 	</div>
 
@@ -65,7 +65,7 @@
 			// fetch('https://localhost:5000/' {
 
 
-			const url = 'http://localhost:5000/' + idToDelete;
+			const url = 'http://localhost:5000/directory/' + idToDelete;
 
 			fetch(url, {
 				method: 'DELETE',
@@ -85,35 +85,35 @@
 				.catch(error => console.error('Error:', error));
 		}
 
+		function uploadFile() {
+			const fileInput = document.getElementById('File');
+			const file = fileInput.files[0];
 
+			if (file) {
+				const formData = new FormData();
+				formData.append('file', file);
 
+				const url = 'http://localhost:5000/directory/cgi_bin/upload.sh';
 
-
-
-		function submitForm(event) {
-			event.preventDefault();  // Evitar la acción predeterminada del formulario
-
-			var fileInput = document.getElementById('fileInput');
-			var file = fileInput.files[0];
-
-			var xhr = new XMLHttpRequest();
-			var formData = new FormData();
-
-			formData.append('file', file);
-
-			xhr.open('POST', 'http://localhost:5000/cgi_bin/upload.sh', true);
-			xhr.setRequestHeader('Content-Disposition', 'filename="' + fileInput.files[0] + '"');
-
-			xhr.onload = function () {
-				if (xhr.status >= 200 && xhr.status < 300) {
-					console.log('Éxito', xhr.responseText);
-				} else {
-					console.error('Error', xhr.statusText);
-				}
-			};
-
-			xhr.send(formData);
+				fetch(url, {
+					method: 'POST',
+					headers: {
+						'Content-Disposition': 'filename="' + fileInput.files[0].name + '"',
+					},
+					body: formData.get('file'),
+				})
+					.then(response => {
+						if (!response.ok) {
+							throw new Error(`La petición falló con el código ${response.status}`);
+						}
+						console.log('Petición POST exitosa');
+					})
+					.catch(error => console.error('Error:', error));
+			} else {
+				console.error('Selecciona un archivo para subir.');
+			}
 		}
+
 	</script>
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"

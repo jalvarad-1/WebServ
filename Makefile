@@ -35,8 +35,8 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	@mkdir -p -m777 $(CACHEDIR)
 	@$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
-	@chmod 755 ./cgi_bin/delete.sh
-	@chmod 755 ./cgi_bin/upload.sh
+	# @chmod 755 ./cgi_bin/delete.sh
+	# @chmod 755 ./cgi_bin/upload.sh
 	@echo "\033[0;32mCompiled\033[0m"
 
 echo: 

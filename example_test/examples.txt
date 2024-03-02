@@ -1,0 +1,27 @@
+curl http://localhost:8002/
+
+curl -X POST http://localhost:8002/ -d @empty #empty empty.
+
+curl -I http://localhost:8002/ #pass HEAD method
+
+curl http://localhost:8002/directory
+
+curl http://localhost:8002/directory/youpi.bad_extension
+
+curl http://localhost:8002/directory/youpi.bla
+
+curl http://localhost:8002/directory/oulalalac #404 not found
+
+curl http://localhost:8002/directory/nop #directory
+
+curl http://localhost:8002/directory/nop/ #directory
+
+curl http://localhost:8002/directory/nop/other.pouic
+
+curl http://localhost:8002/directory/nop/other.pouac
+
+curl http://localhost:8002/directory/Yeah #Not Found
+
+curl http://localhost:8002/directory/Yeah/not_happy.bad_extension
+
+curl -X POST http://localhost:8002/directory/youpi.bla -d @input_test

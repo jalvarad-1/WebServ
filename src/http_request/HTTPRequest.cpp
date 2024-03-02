@@ -15,7 +15,7 @@ void trim(std::string& s)
 }
 
 HTTPRequest::HTTPRequest(void) {//Dummy constructor
-	_body_file_fd = 0;
+	_body_file_fd = -1;
 }
 
 HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverConfig)
@@ -24,7 +24,7 @@ HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverCon
         _error_code = 400;
 		return ;
 	}
-	_body_file_fd = 0;
+	_body_file_fd = -1;
     _location_rules = &Routing::determineResourceLocation(serverConfig, *this);
     if (!Routing::isAllowedMethod(_method, _location_rules->getAllowedMethods())) {
 		_error_code = 405;

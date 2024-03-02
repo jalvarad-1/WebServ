@@ -130,7 +130,7 @@ void    Routing::errorResponse(Response & response, LocationRules & locationRule
         std::map<int, std::string> error_pages = locationRule.getErrorPages();
         std::map<int, std::string>::iterator it = error_pages.find(response.response_code);
         if (it != error_pages.end()) {
-            response.file_path = locationRule.getRoot() + it->second;
+            response.file_path = locationRule.getRoot() + "/" + it->second;
             response = processFilePath(response.file_path);
             response.response_code = response_code;
         }

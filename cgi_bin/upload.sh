@@ -11,8 +11,9 @@ fi
 # Obtener el primer argumento
 file=$1
 
+read -r input_data
 # Imprimir el mensaje utilizando el argumento
-echo $file > uploaded_files/$filename;
+echo $input_data > uploaded_files/$filename;
 
 if [ $? -ne 0 ]; then
   echo -e "Status: 404 Not found"

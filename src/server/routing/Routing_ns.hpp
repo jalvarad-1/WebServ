@@ -14,19 +14,19 @@
 #define ISDIR 1
 #define ISFILE 2
 #define ISCGI 3
-#define ISNAM 4 // Not allowed Method
+#define ISNAM 4
 
 class HTTPRequest;
 namespace Routing
 {
-    LocationRules  & determineResourceLocation(ServerConfig &serverConfig, HTTPRequest httpRequest);//1
-    bool            isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods);//3
-    std::string     removeKeyValue(std::string toRemove, std::string str);//3
-    short int       typeOfResource(const std::string& path, LocationRules locationRule, std::string method);//3
+    LocationRules  & determineResourceLocation(ServerConfig &serverConfig, HTTPRequest httpRequest);
+    bool            isAllowedMethod(const std::string & method, const std::list<std::string> & allowed_methods);
+    std::string     removeKeyValue(std::string toRemove, std::string str);
+    short int       typeOfResource(const std::string& path, LocationRules locationRule, std::string method);
 
-    Response        processDirPath(std::string file_path, LocationRules locationRule);//3
-    Response        processFilePath(std::string resource_path);//3
-    bool            isCorrectCGIExtension(const std::string & file_path, const std::string & extension);//3
+    Response        processDirPath(std::string file_path, LocationRules locationRule);
+    Response        processFilePath(std::string resource_path);
+    bool            isCorrectCGIExtension(const std::string & file_path, const std::string & extension);
     void            errorResponse(Response & response, LocationRules & locationRule);
     std::string     createFilePath(LocationRules locationRule, HTTPRequest& httpRequest);
 }

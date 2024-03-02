@@ -14,7 +14,7 @@ LocationRules & Routing::determineResourceLocation(ServerConfig & serverConfig, 
 
         uri = uri.substr(0, pos);
         if (uri.empty())
-            uri = "/";// verify if "/" URI doesn' t exist
+            uri = "/";
     }
     return serverConfig.locations["default"];
 }
@@ -50,7 +50,7 @@ short int Routing::typeOfResource(const std::string& path, LocationRules locatio
     else if (method != "GET")
         return ISNAM; 
     else if (S_ISREG(statbuf.st_mode))
-        return ISFILE; // Verifica si es un archivo regular
+        return ISFILE;
     else if (S_ISDIR(statbuf.st_mode))
         return ISDIR;
     return ISNAM;
@@ -88,9 +88,9 @@ Response Routing::processDirPath(std::string resource_path, LocationRules locati
         default_file = resource_path + "/" + locationRule.getIndex();
     std::string buffer;
 
-    if (!default_file.empty() && !access(default_file.c_str(), R_OK))//try to open a default file
+    if (!default_file.empty() && !access(default_file.c_str(), R_OK))
         return processFilePath(default_file);
-    else if (locationRule.isAuto_index()) // try  to open dir
+    else if (locationRule.isAuto_index())
     {
         DIR * dir;
         struct dirent *entry;
@@ -98,8 +98,8 @@ Response Routing::processDirPath(std::string resource_path, LocationRules locati
         if(dir != NULL)
         {
             while ((entry = readdir(dir)) != NULL) {
-                response.string_body += entry->d_name; // Agrega el nombre del archivo/directorio a la lista
-                response.string_body += "\n"; // Agrega un salto de línea después de cada nombre
+                response.string_body += entry->d_name;
+                response.string_body += "\n";
             }
             closedir(dir);
             response.file_path = resource_path;
@@ -126,7 +126,7 @@ void    Routing::errorResponse(Response & response, LocationRules & locationRule
 {
     if (response.response_code > 399) // in RFC 7231, 4xx are client errors
     {
-        int response_code = response.response_code;//auxiliary variable to save the response code
+        int response_code = response.response_code;
         std::map<int, std::string> error_pages = locationRule.getErrorPages();
         std::map<int, std::string>::iterator it = error_pages.find(response.response_code);
         if (it != error_pages.end()) {

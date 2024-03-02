@@ -41,11 +41,9 @@ bool ServerConfig::setHostAndPort(std::string & hostAndPort){
     port = hostAndPort.substr(pos + 1);
     this->_host = inet_addr(host.c_str());
     pos = 0;
-    //review if port is a number
     if (port.find_first_not_of("0123456789") != std::string::npos || port.empty())
         return false;
     this->_port = std::atoi(port.c_str());
-
     // INADDR_NONE is -1 and 255.255.255.255 is -1, but is a valid ip
     if ((this->_host == INADDR_NONE && host != "255.255.255.255") || this->_port < 0)
         return false;

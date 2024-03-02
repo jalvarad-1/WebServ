@@ -14,7 +14,7 @@ void trim(std::string& s)
         s = s.substr(start, end - start + 1);
 }
 
-HTTPRequest::HTTPRequest(void) {//Dummy constructor
+HTTPRequest::HTTPRequest(void) {
 	_body_file_fd = -1;
 }
 
@@ -42,12 +42,11 @@ HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverCon
 	_file_path = Routing::createFilePath(*_location_rules, *this);
 	if (_method == "DELETE") {
 		_headers["Content-Disposition"] = "filename=\"" + _file_path + "\"";
-		_file_path = _location_rules->getDeleteCGI(); //PATH DEL CGI DE DELETE
+		_file_path = _location_rules->getDeleteCGI();
 		if (_file_path.empty()) {
 			_error_code = 500;
 			return ;
 		}
-		// WHATEVER DELETE CGI NEEDS
 	}
     _error_code = 200;
 }
@@ -98,7 +97,7 @@ bool HTTPRequest::parse(const std::string& raw_request) {
             return false;
         }
     }
-    return true;// devuelve true si todo salió bien, o false si hubo algún error
+    return true;
 }
 
 std::string HTTPRequest::getMethod() const

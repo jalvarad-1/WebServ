@@ -27,7 +27,7 @@ public:
     void setHost(unsigned int host);
     void setPort(unsigned int port);
     void setServerName(std::string serverName);
-    int getHost()const;//No tengo claro que host nos sirva para algo, es necesario?
+    int getHost()const;
     int getPort()const;
     std::list<std::string> getServerNames();
 

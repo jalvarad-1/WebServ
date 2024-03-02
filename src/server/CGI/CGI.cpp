@@ -24,7 +24,6 @@ int CGI::set_error(int code, std::string body) {
 void CGI::parse_output(std::string output) {
     std::size_t pos = output.find("\n\r", 0);
     if (pos != std::string::npos) {
-        //Guardamos el body desde justo después del salto de línea
         ret.string_body = output.substr(pos + 3);
         std::string headers;
         headers = output.substr(0, pos + 1);
@@ -48,10 +47,6 @@ int CGI::child_process(int (&pipefd)[2], int rd_fd) {
         exit(500);
         return -1;
     }
-
-    std::stringstream salida;
-
-    salida << "Soy el argv: " << _argv[1] << "||" << std::endl;
     execve(_cgi_path, _argv, _envp);
 	write(1, "Status: 500 Internal Server Error\r\n\r\n", 37);
     exit(500);
@@ -61,17 +56,14 @@ int CGI::child_process(int (&pipefd)[2], int rd_fd) {
 int CGI::exec_cgi(std::string body_filename, pid_t *ret_pid) {
 	int rd_fd = open(body_filename.c_str(), O_RDONLY);
 	if (rd_fd == -1) {
-		perror("open");
 		return -1;
 	}
     int pipefd[2];
     if (pipe(pipefd) == -1) {
-		perror("pipe");
         return -1;
     }
     pid_t pid = fork();
     if (pid == -1) {
-		perror("fork");
         return -1;
     }
     else if (pid == 0) {
@@ -93,7 +85,7 @@ void CGI::set_env(std::map<std::string, std::string> map) {
     for (std::map<std::string, std::string>::iterator it = map.begin(); it != map.end(); it++) {
         std::string tempVec = it->first + "=" + it->second;
         _envp[i] = new char[tempVec.size() + 1];
-        strcpy(_envp[i], tempVec.c_str());
+        std::strcpy(_envp[i], tempVec.c_str());
         _envp[i][tempVec.size()] = '\0';
         i++;
     }
@@ -105,7 +97,7 @@ void CGI::set_args(std::vector<std::string> vec) {
     int i = 0;
     for (std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); it++) {
         _argv[i] = new char[it->size() + 1];
-        strcpy(_argv[i], it->c_str());
+        std::strcpy(_argv[i], it->c_str());
         _argv[i][it->size()] = '\0';
         i++;
     }
@@ -114,7 +106,7 @@ void CGI::set_args(std::vector<std::string> vec) {
 
 CGI::CGI(std::string cgi_path) {
     _cgi_path = new char[cgi_path.size() + 1];
-    strcpy(_cgi_path, cgi_path.c_str());
+    std::strcpy(_cgi_path, cgi_path.c_str());
     _cgi_path[cgi_path.size()] = '\0';
 }
 

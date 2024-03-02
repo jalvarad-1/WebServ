@@ -4,8 +4,6 @@
 #include "HTTPServer.hpp"
 #include <vector>
 #include <poll.h>
-#include <cstring> // Para memset
-// #include <chrono>  // Para la hora
 #include <cstdlib>
 #include "../ConfigParser/Parser.hpp"
 #include "CGIManager.hpp"
@@ -14,8 +12,8 @@
 #define CONNECTION_SOCKET 1
 #define CGI_FD 2
 
-struct fd_info{// 
-    short int fd_type;//listening socket / connection  / cgi_fd
+struct fd_info{
+    short int fd_type;
     HTTPServer* server;
     fd_info(){};
     fd_info(short int fd_type, HTTPServer* server) : fd_type(fd_type), server(server) {}

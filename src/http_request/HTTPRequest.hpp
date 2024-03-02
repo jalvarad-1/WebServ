@@ -28,7 +28,7 @@ class HTTPRequest {
         HTTPRequest(void);
         HTTPRequest(const std::string& raw_request, ServerConfig& serverConfig);
 
-        bool parse(const std::string& raw_request); // true = valid request, false = invalid request
+        bool parse(const std::string& raw_request);
         bool methodAcceptsBody() const;
         int returnContentLength() const;
         std::string getMethod() const;

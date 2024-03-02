@@ -3,7 +3,7 @@
 LocationRules::LocationRules() {
     _key_value = "default";
     _root = "";
-    _maxBodySize = 0; //// if 0 is setted, there is no limit
+    _maxBodySize = 0;
     _auto_index = false;
     _index = "";
     _cgi_pass = "";

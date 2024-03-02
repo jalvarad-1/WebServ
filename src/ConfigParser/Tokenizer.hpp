@@ -7,13 +7,13 @@
 
 namespace simpleParser {
     enum TokenType {
-        WHITESPACE, // No token ever has this type
+        WHITESPACE,
         IDENTIFIER,
         INTEGER_LITERAL,
         STRING_LITERAL,
         OPERATOR,
         COMMENT,
-        EMPTY // No token ever has this type
+        EMPTY
     };
 
     class Token {

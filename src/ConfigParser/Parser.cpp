@@ -153,6 +153,7 @@ namespace simpleParser {
             case AUTO_INDEX:
             case ALLOWED_METHODS:
             case CGI_PASS:
+            case DELETE_PASS:
             case REDIRECT:
                 return expectAttributesDefinition(server, "default", type.mType);
                 break;
@@ -165,15 +166,14 @@ namespace simpleParser {
     }
 
     bool Parser::expectServerDefinition() {
-        if (expectIdentifier("server").mType != EMPTY) {//We have a server!!
+        if (expectIdentifier("server").mType != EMPTY) {
             if (expectOperator("{").mType != EMPTY) {
-                std::cout << "Server block found" << std::endl;
                 ServerConfig server;
                 
                 while(expectOperator("}").mType == EMPTY) {
 
-                    if (!expectServerAttributesDefinition(server)) {//We have a server attribute!!
-                        std::cout << "Server non proper configuration" << std::endl;// 
+                    if (!expectServerAttributesDefinition(server)) {
+                        std::cerr << "Webserv Error: Server non proper configuration" << std::endl;
                         return false;
                     }
                 }
@@ -192,13 +192,11 @@ namespace simpleParser {
         
         while (mCurrentToken != mEndToken) {
             if (!expectServerDefinition()) {
-                throw std::runtime_error("Unknown identifier " + mCurrentToken->mText + \
-                                        " line: " + ".");
+                throw std::runtime_error("Unknown identifier " + mCurrentToken->mText);
             }
         }
         if (_confServers.empty())
             throw std::runtime_error("No server definition found");
-        // printServers();
     }
 
     Token Parser::expectOperator(const std::string & name) {

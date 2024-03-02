@@ -73,12 +73,12 @@ Response parse_output(std::string output) {
 
 
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
-	//std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
 	ResponseCode response_codes;
 	std::stringstream response;
 	Response ret = parse_output(responseStr);
 
-	// if (ret.headers["Content-Type"] == "")
+
+	if (ret.headers["Content-Type"] == "")
 		ret.headers["Content-Type"] = "text/plain";
 
 	response << "HTTP/1.1 " << ret.headers["Status"] << "\r\n";

@@ -173,7 +173,7 @@ namespace simpleParser {
                 while(expectOperator("}").mType == EMPTY) {
 
                     if (!expectServerAttributesDefinition(server)) {//We have a server attribute!!
-                        std::cout << "Server no configuarado correctamente" << std::endl;// 
+                        std::cout << "Server non proper configuration" << std::endl;// 
                         return false;
                     }
                 }

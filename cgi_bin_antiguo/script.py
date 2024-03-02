@@ -1,8 +1,0 @@
-print("Hola mundo!!!!")
-print("1Hola mundo!!!!")
-print("2Hola mundo!!!!")
-print("3Hola mundo!!!!")
-print("4Hola mundo!!!!")
-print("5Hola mundo!!!!")
-print("6Hola mundo!!!!")
-print("7Hola mundo!!!!")

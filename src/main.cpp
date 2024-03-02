@@ -21,7 +21,6 @@ int main(int argc, char **argv)
     inFileStream.seekg(0, std::ios::beg);
     inFileStream.read(&buffer[0], buffer.size());
     inFileStream.close();
-    std::cout << "File content:\n" << buffer << std::endl;
 
     try {
         simpleParser::Tokenizer tokenizer;

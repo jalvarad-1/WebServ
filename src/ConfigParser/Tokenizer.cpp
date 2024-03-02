@@ -86,10 +86,7 @@ namespace simpleParser{
     }
 
     void Tokenizer::endToken(Token & token, std::vector<Token> & tokens) {
-        if (token.mType == COMMENT) {
-            std::cout << "Ignoring comment" << token.mText << std::endl;
-        }
-        else if (token.mType != WHITESPACE) {
+        if (token.mType != WHITESPACE && token.mType != COMMENT) {
             tokens.push_back(token);
         }
         token.mType = WHITESPACE;

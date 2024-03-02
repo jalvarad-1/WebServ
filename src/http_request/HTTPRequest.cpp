@@ -36,7 +36,6 @@ HTTPRequest::HTTPRequest(const std::string& raw_request, ServerConfig& serverCon
 	}
     int content_lenght = returnContentLength();
     if (content_lenght != -1 && _location_rules->getMaxBodySize() != 0 && content_lenght > _location_rules->getMaxBodySize()) {
-        std::cerr << "MAX BODY SIZE: " << _location_rules->getMaxBodySize() << std::endl;
         _error_code = 413;
         return ;
     }
@@ -78,13 +77,11 @@ bool HTTPRequest::parse(const std::string& raw_request) {
 		return false ;
 	}
     _http_version = "HTTP/1.1";
-    std::cout << "parseando linea request" << std::endl ;
     while (std::getline(ss, line) && !line.empty() && line != "\r")
     {
         std::size_t colon_pos = line.find(':');
         if (colon_pos == std::string::npos)
         {
-            std::cout << "1" << std::endl;
             return false;
         }
 

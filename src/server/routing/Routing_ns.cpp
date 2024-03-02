@@ -84,12 +84,10 @@ Response Routing::processDirPath(std::string resource_path, LocationRules locati
 {
     Response response;
     std::string default_file;
-    std::cout << resource_path << std::endl;
     if (!locationRule.getIndex().empty())
         default_file = resource_path + "/" + locationRule.getIndex();
     std::string buffer;
 
-    std::cout << "processDirPath: " << default_file << std::endl;
     if (!default_file.empty() && !access(default_file.c_str(), R_OK))//try to open a default file
         return processFilePath(default_file);
     else if (locationRule.isAuto_index()) // try  to open dir

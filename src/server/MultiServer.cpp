@@ -36,13 +36,11 @@ void MultiServer::run() {
 				struct fd_info & current_fd = fd_index[poll_fds[i].fd];
 				switch (current_fd.fd_type) {
 					case LISTENING_PORT:
-						std::cerr << "RECIBIMOS DATOS POR EL listening FD " << poll_fds[i].fd << std::endl;
 						socket = current_fd.server->acceptConnection();
 						poll_fds.push_back(createPollfd(socket));
 						fd_index[socket] = fd_info(CONNECTION_SOCKET, current_fd.server);
 						continue ;
 					case CONNECTION_SOCKET:
-						std::cerr << "RECIBIMOS DATOS POR EL socket FD " << poll_fds[i].fd << std::endl;
 						readResult = current_fd.server->handleEvent(poll_fds[i].fd, cgiManager);//cgi -> NULL , socket -> httpServer (map <int , httpServer>)
 						switch (readResult) {
 							case -1:
@@ -59,14 +57,12 @@ void MultiServer::run() {
 						}
 						continue ;
 					case CGI_FD:
-						// std::cerr << "RECIBIMOS DATOS POR EL cgi FD " << poll_fds[i].fd << std::endl;
 						if (!cgiManager.readOutput(poll_fds[i].fd)) {
 							std::cerr << "VOY A BORRAR EL cgi FD " << poll_fds[i].fd << std::endl;
 							erasePollfd(i);						
 						}
 						continue ;
 					default:
-						std::cerr << "AYUDA ESTO NO DEBERÍA OCURRIR" << std::endl;
 				}
             }		
         }

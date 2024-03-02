@@ -10,8 +10,7 @@
 int openFile(std::string file) {
     int fileDescriptor = open(file.c_str(), O_RDONLY);
     if (fileDescriptor == -1) {
-        std::cerr << "Error: Could not open file " << file << std::endl;
-        return -1;
+        std::cerr << "Webserv Error: Could not open file " << file << std::endl;
     }
     return fileDescriptor;
 }
@@ -52,8 +51,7 @@ int CGI::child_process(int (&pipefd)[2], int rd_fd) {
 
     std::stringstream salida;
 
-    salida << "Soy el argv: " << _argv[1] << "||" << std::endl; 
-	std::cerr << salida.str().c_str();
+    salida << "Soy el argv: " << _argv[1] << "||" << std::endl;
     execve(_cgi_path, _argv, _envp);
 	write(1, "Status: 500 Internal Server Error\r\n\r\n", 37);
     exit(500);
@@ -61,10 +59,8 @@ int CGI::child_process(int (&pipefd)[2], int rd_fd) {
 }
 
 int CGI::exec_cgi(std::string body_filename, pid_t *ret_pid) {
-    std::cerr << "Soy el argv del padre (funciona porfi): " << _argv[1] << std::endl;
 	int rd_fd = open(body_filename.c_str(), O_RDONLY);
 	if (rd_fd == -1) {
-		std::cerr << "ERROR WHEN TRYING TO OPEN " << body_filename << std::endl;
 		perror("open");
 		return -1;
 	}
@@ -120,7 +116,6 @@ CGI::CGI(std::string cgi_path) {
     _cgi_path = new char[cgi_path.size() + 1];
     strcpy(_cgi_path, cgi_path.c_str());
     _cgi_path[cgi_path.size()] = '\0';
-    // _file_path = file_path;
 }
 
 CGI::~CGI() {

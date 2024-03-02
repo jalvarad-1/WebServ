@@ -9,11 +9,21 @@
 # fi
 
 # Obtener el primer argumento
-file=$1
+
+if [ -f "uploaded_files/$filename" ]; then
+    echo -e "Status: 409 Conflict"
+    echo -e "\r"
+    echo -e "File already exists"
+    exit 1
+fi
 
 while IFS= read -r input_data; do
     echo "$input_data" >> uploaded_files/$filename;
 done
+
+# while IFS= read -r input_data; do
+#     echo "$input_data" >> uploaded_files/$filename;
+# done
 
 # Imprimir el mensaje utilizando el argumento
 # echo -e $input_data > uploaded_files/$filename;

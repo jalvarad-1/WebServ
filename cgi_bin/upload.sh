@@ -12,7 +12,7 @@
 file=$1
 
 while IFS= read -r input_data; do
-    echo "$input_data" >> uploaded_files/$filename;
+    echo -e "$input_data" >> uploaded_files/$filename;
 done
 
 # Imprimir el mensaje utilizando el argumento

@@ -153,6 +153,7 @@ namespace simpleParser {
             case AUTO_INDEX:
             case ALLOWED_METHODS:
             case CGI_PASS:
+            case DELETE_PASS:
             case REDIRECT:
                 return expectAttributesDefinition(server, "default", type.mType);
                 break;

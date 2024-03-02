@@ -31,12 +31,12 @@
 		</div>
 
 		<!-- Formulario para subir archivos -->
-		<div class="col-md-12 mb-4">
+		<!-- <div class="col-md-12 mb-4">
 			<form method="post" action="cgi_bin/upload.sh">
 				<input type="file" class="form-control-file" id="archivo">
 				<button class="btn btn-primary" type="submit">Upload file</buttom>
 			</form>
-		</div>
+		</div> -->
 
 		<!-- Formulario para eliminar archivos -->
 		<div class="col-md-12 mb-4">
@@ -46,6 +46,14 @@
 				<button class="btn btn-primary" type="button" onclick="eliminarElemento()">Eliminar</button>
 			</form>
 		</div>
+
+
+
+		<form id="myForm">
+			<!-- Añade los campos de tu formulario aquí -->
+			<input type="file" id="fileInput" name="file">
+			<input type="submit" value="Enviar" onclick="submitForm(event)">
+		</form>
 	</div>
 
 	<script>
@@ -54,26 +62,57 @@
 			var idToDelete = document.getElementById("idToDelete").value;
 
 			// Realizar la solicitud DELETE usando fetch (puedes adaptar esto según tu backend)
-			fetch('https://localhost:5000/' + idToDelete, {
+			// fetch('https://localhost:5000/' {
+
+
+			const url = 'http://localhost:5000/' + idToDelete;
+
+			fetch(url, {
 				method: 'DELETE',
 				headers: {
-					'Content-Type': 'application/json',
+					'Content-Type': 'application/json', // Ajusta según tus necesidades
+					// Puedes incluir otros encabezados si es necesario
 				},
+				// body: JSON.stringify({}), // Puedes enviar datos en el cuerpo si es necesario
 			})
 				.then(response => {
 					if (!response.ok) {
-						throw new Error('Error al eliminar elemento');
+						throw new Error(`La petición falló con el código ${response.status}`);
 					}
-					return response.json();
+					// Realiza las acciones necesarias si la petición fue exitosa
+					console.log('Petición DELETE exitosa');
 				})
-				.then(data => {
-					console.log('Elemento eliminado:', data);
-					// Puedes realizar acciones adicionales después de la eliminación
-				})
-				.catch(error => {
-					console.error('Error:', error);
-					// Manejar errores aquí
-				});
+				.catch(error => console.error('Error:', error));
+		}
+
+
+
+
+
+
+		function submitForm(event) {
+			event.preventDefault();  // Evitar la acción predeterminada del formulario
+
+			var fileInput = document.getElementById('fileInput');
+			var file = fileInput.files[0];
+
+			var xhr = new XMLHttpRequest();
+			var formData = new FormData();
+
+			formData.append('file', file);
+
+			xhr.open('POST', 'http://localhost:5000/cgi_bin/upload.sh', true);
+			xhr.setRequestHeader('Content-Disposition', 'filename="' + fileInput.files[0] + '"');
+
+			xhr.onload = function () {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					console.log('Éxito', xhr.responseText);
+				} else {
+					console.error('Error', xhr.statusText);
+				}
+			};
+
+			xhr.send(formData);
 		}
 	</script>
 

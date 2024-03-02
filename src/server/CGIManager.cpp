@@ -19,7 +19,7 @@ bool CGIManager::readOutput( int fd ) {
 			std::cerr << "CGI READ DA -1" << std::endl;
 			kill(_bufferedCGIs[fd].pid, SIGKILL);
 			_bufferedCGIs[fd].buffer_str = "Status: 500 Internal Server Error\r\n\r\n";
-			eraseFile(_bufferedCGIs[fd].in_body_filename);
+			// eraseFile(_bufferedCGIs[fd].in_body_filename);
 			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
 			close(_bufferedCGIs[fd].out_socket);
 			_bufferedCGIs.erase(fd);
@@ -29,7 +29,7 @@ bool CGIManager::readOutput( int fd ) {
 			if (waitpid(_bufferedCGIs[fd].pid, NULL, WNOHANG) == 0) {
 				return true;
 			}
-			eraseFile(_bufferedCGIs[fd].in_body_filename);
+			// eraseFile(_bufferedCGIs[fd].in_body_filename);
 			returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
 			_bufferedCGIs.erase(fd);
 			close(fd);
@@ -46,7 +46,7 @@ bool CGIManager::readOutput( int fd ) {
 					_bufferedCGIs[fd].buffer_str.append(buffer);
 					bytes_read = read(fd, buffer, CGI_BUFFER_SIZE - 1);
 				}
-				eraseFile(_bufferedCGIs[fd].in_body_filename);
+				// eraseFile(_bufferedCGIs[fd].in_body_filename);
 				returnResponse(_bufferedCGIs[fd].buffer_str, _bufferedCGIs[fd].out_socket);
 				_bufferedCGIs.erase(fd);
 				close(fd);
@@ -83,10 +83,11 @@ Response parse_output(std::string output) {
 
 
 void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
-	//std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
+	std::cout << "\n---Response CGI---\n" << responseStr <<  "---" << std::endl;
 	ResponseCode response_codes;
 	std::stringstream response;
 	Response ret = parse_output(responseStr);
+
 
 	// if (ret.headers["Content-Type"] == "")
 		ret.headers["Content-Type"] = "text/plain";

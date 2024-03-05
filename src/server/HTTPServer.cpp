@@ -290,6 +290,7 @@ int HTTPServer::sendResponse(int socket, Response & httpResponse)
 	}
     response << "\r\n";
 	response << httpResponse.string_body;
+	signal(SIGPIPE, SIG_IGN);
     send(socket, response.str().c_str(), response.str().size(), 0);
     return -1;
 }

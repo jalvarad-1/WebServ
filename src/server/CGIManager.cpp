@@ -92,6 +92,7 @@ void CGIManager::returnResponse(std::string & responseStr, int outSocket) {
 	}
 	response << "\r\n";
 	response << ret.string_body;
+	signal(SIGPIPE, SIG_IGN);
 	send(outSocket, response.str().c_str(), response.str().size(), 0);
 	close(outSocket);
 }
